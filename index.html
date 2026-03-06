@@ -433,12 +433,7 @@ async function loadData(){
     const aWH = wH.map(v => v != null ? v * atten : v);
     const acH = cH != null ? cH * atten : cH;
 
-    // NOW
-    const {score,reasons}=rate(acH,wSwell[h]??wP[h],wD[h],wS[h],wDir[h]);
-    const d=to5(score); set('rnum',d); setc('rnum',sc(d));
-    seth('rstars',stars(d,cl(d),'star'));
-    set('rdesc',desc(d));
-    set('rreason',reasons.length?reasons.join(' · '):'Conditions looking good');
+    // NOW — displayed after buoy fetch below
 
     // AM / PM
     const amI=Array.from({length:Math.max(0,12-dawn)},(_,i)=>dawn+i).filter(i=>i<24);
@@ -485,6 +480,13 @@ async function loadData(){
     const useDir = buoyDir != null ? buoyDir : wD[h];
     const useT   = buoyT   != null ? buoyT   : seaT[h];
     const dataSource = buoyLabel ? `Buoy · ${buoyLabel}` : 'Open-Meteo';
+
+    // NOW scoring using best available data
+    const {score,reasons}=rate(useH,useP,useDir,wS[h],wDir[h]);
+    const d=to5(score); set('rnum',d); setc('rnum',sc(d));
+    seth('rstars',stars(d,cl(d),'star'));
+    set('rdesc',desc(d));
+    set('rreason',reasons.length?reasons.join(' · '):'Conditions looking good');
 
     // Conditions
     const cP=wP[h],cD=wD[h],cT=useT;
