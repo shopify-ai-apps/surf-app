@@ -410,8 +410,8 @@ async function loadData(){
   document.getElementById('app').style.display='none';
   try{
     const [mr,wr]=await Promise.all([
-      fetch(`https://marine-api.open-meteo.com/v1/marine?latitude=${currentSpot.lat}&longitude=${currentSpot.lon}&hourly=wave_height,wave_period,swell_wave_period,wave_direction,sea_surface_temperature,sea_level_height_msl&timezone=Europe%2FLondon&forecast_days=1`),
-      fetch(`https://api.open-meteo.com/v1/forecast?latitude=${currentSpot.lat}&longitude=${currentSpot.lon}&hourly=windspeed_10m,winddirection_10m&timezone=Europe%2FLondon&forecast_days=1`)
+      fetch(`https://marine-api.open-meteo.com/v1/marine?latitude=${currentSpot.lat}&longitude=${currentSpot.lon}&hourly=wave_height,wave_period,swell_wave_period,wave_direction,sea_surface_temperature,sea_level_height_msl&timezone=Europe%2FLondon&forecast_days=2`),
+      fetch(`https://api.open-meteo.com/v1/forecast?latitude=${currentSpot.lat}&longitude=${currentSpot.lon}&hourly=windspeed_10m,winddirection_10m&timezone=Europe%2FLondon&forecast_days=2`)
     ]);
     const m=await mr.json(), w=await wr.json();
     const now=new Date(), h=now.getHours();
