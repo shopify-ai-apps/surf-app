@@ -410,7 +410,7 @@ async function loadData(){
   document.getElementById('app').style.display='none';
   try{
     const [mr,wr]=await Promise.all([
-      fetch(`https://marine-api.open-meteo.com/v1/marine?latitude=${currentSpot.lat}&longitude=${currentSpot.lon}&hourly=wave_height,wave_period,peak_wave_period,wave_direction,sea_surface_temperature,sea_level_height_msl&timezone=Europe%2FLondon&forecast_days=1`),
+      fetch(`https://marine-api.open-meteo.com/v1/marine?latitude=${currentSpot.lat}&longitude=${currentSpot.lon}&hourly=wave_height,wave_period,wave_direction,sea_surface_temperature,sea_level_height_msl&timezone=Europe%2FLondon&forecast_days=1`),
       fetch(`https://api.open-meteo.com/v1/forecast?latitude=${currentSpot.lat}&longitude=${currentSpot.lon}&hourly=windspeed_10m,winddirection_10m&timezone=Europe%2FLondon&forecast_days=1`)
     ]);
     const m=await mr.json(), w=await wr.json();
@@ -419,8 +419,14 @@ async function loadData(){
     const times=m.hourly.time;
     const wH=m.hourly.wave_height, wP=m.hourly.wave_period;
     const wD=m.hourly.wave_direction, seaT=m.hourly.sea_surface_temperature;
-    const wPeak=m.hourly.peak_wave_period;
     const tideRaw=m.hourly.sea_level_height_msl;
+    // Fetch peak wave period separately — not always available, fall back to mean period
+    let wPeak = wP;
+    try {
+      const pr = await fetch(`https://marine-api.open-meteo.com/v1/marine?latitude=${currentSpot.lat}&longitude=${currentSpot.lon}&hourly=peak_wave_period&timezone=Europe%2FLondon&forecast_days=1`);
+      const pd = await pr.json();
+      if (pd.hourly?.peak_wave_period) wPeak = pd.hourly.peak_wave_period.map((v,i)=>v??wP[i]);
+    } catch(e) { /* fall back to mean period */ }
     const wS=w.hourly.windspeed_10m, wDir=w.hourly.winddirection_10m;
 
     // Attenuation — apply before scoring or display
