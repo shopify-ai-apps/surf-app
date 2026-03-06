@@ -462,12 +462,18 @@ async function loadData(){
           const feat = bd.features?.[0];
           if (feat?.properties) {
             const p = feat.properties;
-            // CCO GeoJSON properties: Hs (sig height m), Tp (peak period s), Dir (direction), SST (temp)
-            buoyH   = p.Hs   ?? p.hs   ?? p.SignificantWaveHeight ?? null;
-            buoyP   = p.Tp   ?? p.tp   ?? p.PeakPeriod            ?? null;
-            buoyDir = p.Dir  ?? p.dir  ?? p.MeanDirection         ?? null;
-            buoyT   = p.SST  ?? p.sst  ?? p.SeaSurfaceTemp        ?? null;
+            // CCO GeoJSON properties (all lowercase)
+            buoyH   = p.hs   != null ? parseFloat(p.hs)   : null;
+            buoyP   = p.tp   != null ? parseFloat(p.tp)   : null;
+            buoyDir = p.pdir != null ? parseFloat(p.pdir) : null;
+            buoyT   = p.sst  != null ? parseFloat(p.sst)  : null;
             buoyLabel = currentSpot.buoy;
+            // Parse buoy timestamp e.g. "20260306#143000" → "14:30"
+            const rawDate = feat.properties.date ?? '';
+            const timePart = rawDate.split('#')[1];
+            if (timePart) {
+              buoyLabel += ` · ${timePart.slice(0,2)}:${timePart.slice(2,4)}`;
+            }
           }
         }
       } catch(e) { /* fall back to model data */ }
