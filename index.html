@@ -410,7 +410,7 @@ async function loadData(){
   document.getElementById('app').style.display='none';
   try{
     const [mr,wr]=await Promise.all([
-      fetch(`https://marine-api.open-meteo.com/v1/marine?latitude=${currentSpot.lat}&longitude=${currentSpot.lon}&hourly=wave_height,wave_period,wave_direction,sea_surface_temperature,sea_level_height_msl&timezone=Europe%2FLondon&forecast_days=1`),
+      fetch(`https://marine-api.open-meteo.com/v1/marine?latitude=${currentSpot.lat}&longitude=${currentSpot.lon}&hourly=wave_height,wave_period,peak_wave_period,wave_direction,sea_surface_temperature,sea_level_height_msl&timezone=Europe%2FLondon&forecast_days=1`),
       fetch(`https://api.open-meteo.com/v1/forecast?latitude=${currentSpot.lat}&longitude=${currentSpot.lon}&hourly=windspeed_10m,winddirection_10m&timezone=Europe%2FLondon&forecast_days=1`)
     ]);
     const m=await mr.json(), w=await wr.json();
@@ -419,6 +419,7 @@ async function loadData(){
     const times=m.hourly.time;
     const wH=m.hourly.wave_height, wP=m.hourly.wave_period;
     const wD=m.hourly.wave_direction, seaT=m.hourly.sea_surface_temperature;
+    const wPeak=m.hourly.peak_wave_period;
     const tideRaw=m.hourly.sea_level_height_msl;
     const wS=w.hourly.windspeed_10m, wDir=w.hourly.winddirection_10m;
 
@@ -429,7 +430,7 @@ async function loadData(){
     const acH = cH != null ? cH * atten : cH;
 
     // NOW
-    const {score,reasons}=rate(acH,wP[h],wD[h],wS[h],wDir[h]);
+    const {score,reasons}=rate(acH,wPeak[h]??wP[h],wD[h],wS[h],wDir[h]);
     const d=to5(score); set('rnum',d); setc('rnum',sc(d));
     seth('rstars',stars(d,cl(d),'star'));
     set('rdesc',desc(d));
@@ -438,8 +439,8 @@ async function loadData(){
     // AM / PM
     const amI=Array.from({length:Math.max(0,12-dawn)},(_,i)=>dawn+i).filter(i=>i<24);
     const pmI=Array.from({length:Math.max(0,dusk-12)},(_,i)=>12+i).filter(i=>i<24);
-    const amS=bestScore(amI,aWH,wP,wD,wS,wDir);
-    const pmS=bestScore(pmI,aWH,wP,wD,wS,wDir);
+    const amS=bestScore(amI,aWH,wPeak.map((v,i)=>v??wP[i]),wD,wS,wDir);
+    const pmS=bestScore(pmI,aWH,wPeak.map((v,i)=>v??wP[i]),wD,wS,wDir);
     const amD=to5(amS); set('ams',amD); setc('ams',sc(amD));
     seth('amst',stars(amD,cl(amD),'astar'));
     set('amd',desc(amD));
@@ -454,7 +455,7 @@ async function loadData(){
     const faceH = acH != null ? acH * 3.28084 * 0.55 : 0;
     seth('whb',bdg(faceH<0.75?'Flat':faceH<1.5?'Small':faceH<3.0?'Thigh–waist':faceH<4.5?'Waist–chest':faceH<6.0?'Head high':faceH<8.0?'Overhead':'Double overhead+',
       faceH>=1.5&&faceH<=5?'good':faceH>0.75?'ok':'poor'));
-    set('wp',cP?.toFixed(0)??'—');
+    set('wp',(wPeak[h]??cP)?.toFixed(0)??'—');
     seth('wpb',bdg(cP>=12?'Groundswell':cP>=10?'Good swell':cP>=7?'Mixed':'Windswell',
       cP>=10?'good':cP>=7?'ok':'poor'));
     set('sd',compass(cD));
@@ -501,14 +502,14 @@ async function loadData(){
     const mx=Math.max(...aWH.slice(fStart,fEnd+1));
     let fh='';
     for(let i=fStart;i<=Math.min(fEnd,times.length-1);i++){
-      const {score:s}=rate(aWH[i],wP[i],wD[i],wS[i],wDir[i]); const ds=to5(s);
+      const {score:s}=rate(aWH[i],wPeak[i]??wP[i],wD[i],wS[i],wDir[i]); const ds=to5(s);
       const bc=sc(ds), bw=mx>0?Math.round((aWH[i]/mx)*100):10;
       const isNow=i===h;
       fh+=`<div class="frow" style="${isNow?'background:#ffffff08;':''}">
         <div class="ftime" style="${isNow?'color:var(--foam);font-weight:600':''}">${isNow?'Now':fmt(times[i])}</div>
         <div class="fbw"><div class="fb" style="width:${bw}%;background:${bc}"></div></div>
         <div class="fwave">${aWH[i] != null ? (aWH[i]*3.28084*0.55).toFixed(1)+'ft' : '—'}</div>
-        <div class="fperiod">${wP[i]?.toFixed(0)}s</div>
+        <div class="fperiod">${(wPeak[i]??wP[i])?.toFixed(0)}s</div>
         <div class="fscore" style="color:${bc}">${ds}/5</div>
       </div>`;
     }
