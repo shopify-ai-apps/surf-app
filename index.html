@@ -8,7 +8,7 @@
 <style>
 :root {
   --deep:#0a1628;--mid:#0d2240;--light:#1a3a5c;--foam:#e8f4f8;
-  --coral:#ff6b4a;--green:#2dd4a0;--amber:#f5a623;--text:#c8dce8;--dim:#5a7a8a;
+  --coral:#ff6b4a;--green:#2dd4a0;--green-dark:#1a7a4a;--amber:#f07020;--yellow:#e8d44d;--text:#c8dce8;--dim:#5a7a8a;
 }
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:'DM Sans',sans-serif;background:var(--deep);color:var(--text);min-height:100vh;overflow-x:hidden}
@@ -22,9 +22,21 @@ body{font-family:'DM Sans',sans-serif;background:var(--deep);color:var(--text);m
 
 header{padding:32px 24px 20px;border-bottom:1px solid #ffffff08;animation:fu .4s ease both}
 .slabel{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--dim);margin-bottom:6px}
-.sname{font-family:'Bebas Neue',sans-serif;font-size:52px;line-height:.9;color:var(--foam);margin-bottom:4px}
+.sname{font-family:'Bebas Neue',sans-serif;font-size:52px;line-height:.9;color:var(--foam);margin-bottom:4px;white-space:nowrap;overflow:hidden}
 .ssub{font-family:'DM Mono',monospace;font-size:10px;color:var(--dim);letter-spacing:2px}
 .upd{font-family:'DM Mono',monospace;font-size:10px;color:var(--dim);margin-top:12px}
+.search-wrap{padding:16px 20px 0;position:relative}
+.search-box{width:100%;background:var(--mid);border:1px solid #ffffff12;border-radius:12px;padding:12px 16px 12px 40px;font-family:'DM Sans',sans-serif;font-size:14px;color:var(--foam);outline:none;transition:border-color .2s}
+.search-box::placeholder{color:var(--dim)}
+.search-box:focus{border-color:#ffffff25}
+.search-icon{position:absolute;left:32px;top:50%;transform:translateY(-50%);color:var(--dim);font-size:16px;pointer-events:none}
+.results-list{position:absolute;top:calc(100% - 4px);left:20px;right:20px;background:#0f2a45;border:1px solid #ffffff12;border-radius:12px;overflow:hidden;z-index:50;box-shadow:0 8px 32px #00000066}
+.result-item{padding:12px 16px;cursor:pointer;border-bottom:1px solid #ffffff08;transition:background .15s}
+.result-item:last-child{border-bottom:none}
+.result-item:hover{background:#ffffff0a}
+.result-name{font-size:14px;color:var(--foam);font-weight:500}
+.result-region{font-family:'DM Mono',monospace;font-size:10px;color:var(--dim);letter-spacing:1px;margin-top:2px}
+
 .sh{padding:16px 20px 8px;font-family:'DM Mono',monospace;font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--dim)}
 
 .rcard{margin:4px 16px 10px;background:linear-gradient(135deg,var(--mid),var(--light));border:1px solid #ffffff10;border-radius:20px;padding:28px 24px;position:relative;animation:fu .45s ease .05s both}
@@ -46,14 +58,18 @@ header{padding:32px 24px 20px;border-bottom:1px solid #ffffff08;animation:fu .4s
 .star{width:14px;height:14px}
 .astar{width:11px;height:11px}
 .star.on,.astar.on{opacity:1}
-.star.on.g,.astar.on.g{background:var(--green);box-shadow:0 0 8px #2dd4a044}
+.star.on.g5,.astar.on.g5{background:var(--green);box-shadow:0 0 8px #2dd4a044}
+.star.on.g4,.astar.on.g4{background:var(--green-dark)}
 .star.on.a,.astar.on.a{background:var(--amber)}
-.star.on.r,.astar.on.r{background:var(--coral)}
+.star.on.y,.astar.on.y{background:var(--yellow)}
+.star.on.d,.astar.on.d{background:var(--dim)}
 .star.h,.astar.h{opacity:1}
 .star.h::after,.astar.h::after{content:'';position:absolute;top:0;left:50%;right:0;bottom:0;background:var(--deep);opacity:.75}
-.star.h.g,.astar.h.g{background:var(--green)}
+.star.h.g5,.astar.h.g5{background:var(--green)}
+.star.h.g4,.astar.h.g4{background:var(--green-dark)}
 .star.h.a,.astar.h.a{background:var(--amber)}
-.star.h.r,.astar.h.r{background:var(--coral)}
+.star.h.y,.astar.h.y{background:var(--yellow)}
+.star.h.d,.astar.h.d{background:var(--dim)}
 
 .amgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 16px;margin-bottom:10px}
 .amc{background:var(--mid);border:1px solid #ffffff0a;border-radius:16px;padding:18px 16px;animation:fu .5s ease both}
@@ -76,7 +92,7 @@ header{padding:32px 24px 20px;border-bottom:1px solid #ffffff08;animation:fu .4s
 .badge{display:inline-block;margin-top:6px;padding:2px 8px;border-radius:4px;font-size:10px;font-weight:500;letter-spacing:.5px}
 .bg{background:var(--deep)!important}
 .good{background:#2dd4a015;color:var(--green);border:1px solid #2dd4a030}
-.ok{background:#f5a62315;color:var(--amber);border:1px solid #f5a62330}
+.ok{background:#f0702015;color:var(--amber);border:1px solid #f0702030}
 .poor{background:#ff6b4a15;color:var(--coral);border:1px solid #ff6b4a30}
 
 .tcard{margin:0 16px 10px;background:var(--mid);border:1px solid #ffffff0a;border-radius:16px;padding:20px;animation:fu .5s ease .42s both}
@@ -95,6 +111,7 @@ header{padding:32px 24px 20px;border-bottom:1px solid #ffffff08;animation:fu .4s
 .fbw{flex:1;height:5px;background:var(--deep);border-radius:3px;overflow:hidden}
 .fb{height:100%;border-radius:3px}
 .fwave{font-family:'DM Mono',monospace;font-size:11px;color:var(--text);width:38px;text-align:right;flex-shrink:0}
+.fperiod{font-family:'DM Mono',monospace;font-size:10px;color:var(--dim);flex-shrink:0;width:24px;text-align:right}
 .fscore{font-family:'DM Mono',monospace;font-size:10px;flex-shrink:0;width:32px;text-align:right}
 
 .sinfo{margin:0 16px 10px;background:var(--mid);border:1px solid #ffffff0a;border-radius:16px;padding:20px;animation:fu .5s ease .52s both}
@@ -131,11 +148,16 @@ header{padding:32px 24px 20px;border-bottom:1px solid #ffffff08;animation:fu .4s
 </div>
 <div class="wrap" id="app" style="display:none">
   <header>
-    <div class="slabel">🌊 South Coast, UK</div>
-    <div class="sname">BRACKLESH<br>AM BAY</div>
-    <div class="ssub">50.7756°N &nbsp;·&nbsp; 0.8831°W</div>
+    <div class="slabel" id="slabel">🌊 South Coast, UK</div>
+    <div class="sname" id="sname">BRACKLESHAM BAY</div>
+    <div class="ssub" id="ssub">50.7756°N &nbsp;·&nbsp; 0.8831°W</div>
     <div class="upd" id="upd">Fetching conditions...</div>
   </header>
+  <div class="search-wrap" style="position:relative">
+    <span class="search-icon">🔍</span>
+    <input class="search-box" id="search-box" type="text" placeholder="Search a surf spot..." autocomplete="off">
+    <div class="results-list" id="results-list" style="display:none"></div>
+  </div>
 
   <div class="sh">Now</div>
   <div class="rcard">
@@ -175,15 +197,32 @@ header{padding:32px 24px 20px;border-bottom:1px solid #ffffff08;animation:fu .4s
 
   <div class="sh">Conditions</div>
   <div class="cgrid">
-    <div class="cc"><div class="clabel">🌊 Wave Height</div><div class="cval" id="wh">—</div><div class="cunit">metres</div><div id="whb"></div></div>
+    <div class="cc"><div class="clabel">🌊 Wave Height</div>
+      <div class="cval" id="wh">—</div>
+      <div class="cunit">significant height</div>
+      <div style="margin-top:6px;display:flex;align-items:baseline;gap:5px">
+        <span style="font-family:'Bebas Neue',sans-serif;font-size:20px;color:var(--foam)" id="wh-face">—</span>
+        <span style="font-family:'DM Mono',monospace;font-size:9px;color:var(--dim)">face height</span>
+      </div>
+      <div id="whb"></div></div>
     <div class="cc"><div class="clabel">⏱ Wave Period</div><div class="cval" id="wp">—</div><div class="cunit">seconds</div><div id="wpb"></div></div>
-    <div class="cc"><div class="clabel">🧭 Swell Dir</div><div class="cval" id="sd">—</div><div class="cunit">from</div><div id="sdb"></div></div>
-    <div class="cc"><div class="clabel">💨 Wind</div><div class="cval" id="ws">—</div><div class="cunit" id="wdt">km/h</div><div id="wsb"></div></div>
+    <div class="cc"><div class="clabel">🧭 Swell Direction</div><div class="cval" id="sd">—</div><div class="cunit">from</div><div id="sdb"></div></div>
+    <div class="cc"><div class="clabel">💨 Wind</div><div class="cval" id="ws">—</div><div class="cunit" id="wdt">mph</div><div id="wsb"></div></div>
     <div class="cc"><div class="clabel">🌡 Water Temp</div><div class="cval" id="wt">—</div><div class="cunit">°C</div><div id="wtb"></div></div>
-    <div class="cc"><div class="clabel">🌬 Wind Direction</div><div class="cval" id="wda" style="font-size:16px;line-height:1.3;padding-top:4px">—</div><div class="cunit" id="wdo">—</div><div id="wdb"></div></div>
+    <div class="cc"><div class="clabel">🌬 Wind Direction</div>
+      <div style="display:flex;align-items:center;gap:10px;margin:6px 0 2px">
+        <svg id="wind-arrow-svg" width="32" height="32" viewBox="0 0 32 32">
+          <circle cx="16" cy="16" r="15" fill="none" stroke="#ffffff12" stroke-width="1"/>
+          <g id="wind-arrow-g" style="transform-origin:16px 16px">
+            <polygon points="16,4 20,22 16,19 12,22" fill="white" opacity="0.9"/>
+          </g>
+        </svg>
+        <div class="cval" id="wda" style="font-size:16px;line-height:1.3">—</div>
+      </div>
+      <div class="cunit" id="wdo">—</div><div id="wdb"></div></div>
   </div>
 
-  <div class="sh">Tides · Selsey Bill</div>
+  <div class="sh" id="tide-header">Tides · Selsey Bill</div>
   <div class="tcard">
     <div class="tvis"><svg class="tsvg" id="tsvg" viewBox="0 0 400 60"></svg></div>
     <div class="tstats">
@@ -198,19 +237,38 @@ header{padding:32px 24px 20px;border-bottom:1px solid #ffffff08;animation:fu .4s
 
   <div class="sh">Spot Notes</div>
   <div class="sinfo">
-    <div class="igrid">
-      <div><div class="il">Best Swell</div><div class="iv">SW–WSW</div></div>
-      <div><div class="il">Best Wind</div><div class="iv">NE (offshore)</div></div>
-      <div><div class="il">Best Tide</div><div class="iv">Low–Mid</div></div>
-      <div><div class="il">Break Type</div><div class="iv">Beach break</div></div>
-      <div><div class="il">Level</div><div class="iv">All levels</div></div>
-      <div><div class="il">Hazards</div><div class="iv">Groynes, rips</div></div>
-    </div>
+    <div class="igrid" id="spot-notes"></div>
   </div>
   <button class="rbtn" onclick="loadData()">↺ &nbsp;Refresh</button>
 </div>
 <script>
-const LAT=50.7756,LON=-0.8831,SWELL=225,OFFSHORE=45;
+const SPOTS = [
+  // South Coast
+  { name:'Bracklesham Bay', atten:1.0,  region:'South Coast',    lat:50.7756, lon:-0.8831, swell:225, offshore:45,  tideRef:'Selsey Bill',  bestTide:'Low–Mid',    type:'Beach break',  level:'All levels',   hazards:'Groynes, rips' },
+  { name:'Boscombe', atten:1.0,         region:'South Coast',    lat:50.7192, lon:-1.8372, swell:225, offshore:0,   tideRef:'Bournemouth',   bestTide:'All tides',  type:'Beach break',  level:'All levels',   hazards:'Pier, crowds' },
+  { name:'Chesil Beach', atten:1.0,     region:'South Coast',    lat:50.6167, lon:-2.5500, swell:180, offshore:0,   tideRef:'Portland Bill',   bestTide:'Mid',        type:'Shore break',  level:'Experienced',  hazards:'Shingle, dumping' },
+  // South West
+  { name:'Croyde', atten:1.0,           region:'North Devon',    lat:51.1167, lon:-4.2333, swell:280, offshore:90,  tideRef:'Ilfracombe',  bestTide:'Mid',        type:'Beach break',  level:'All levels',   hazards:'Rips, rocks' },
+  { name:'Saunton Sands', atten:1.0,    region:'North Devon',    lat:51.1000, lon:-4.2167, swell:280, offshore:90,  tideRef:'Ilfracombe',  bestTide:'Low–Mid',    type:'Beach break',  level:'Beginner',     hazards:'Rips' },
+  { name:'Fistral', atten:1.0,          region:'Cornwall',       lat:50.4167, lon:-5.1000, swell:270, offshore:90,  tideRef:'Newquay',  bestTide:'Mid',        type:'Beach break',  level:'All levels',   hazards:'Rips, crowds' },
+  { name:'Watergate Bay', atten:1.0,    region:'Cornwall',       lat:50.4500, lon:-5.0333, swell:270, offshore:90,  tideRef:'Newquay',  bestTide:'All tides',  type:'Beach break',  level:'All levels',   hazards:'Rips' },
+  { name:'Constantine Bay', atten:1.0,  region:'Cornwall',       lat:50.5333, lon:-5.0000, swell:270, offshore:135, tideRef:'Padstow', bestTide:'Mid',        type:'Beach break',  level:'Intermediate', hazards:'Rocks, rips' },
+  { name:'Sennen Cove', atten:1.0,      region:'Cornwall',       lat:50.0700, lon:-5.7000, swell:270, offshore:135, tideRef:"Land's End", bestTide:'Mid',        type:'Beach break',  level:'All levels',   hazards:'Rocks' },
+  { name:'Porthmeor', atten:1.0,        region:'Cornwall',       lat:50.2167, lon:-5.4833, swell:270, offshore:135, tideRef:'St Ives', bestTide:'All tides',  type:'Beach break',  level:'All levels',   hazards:'Crowds' },
+  { name:'Newgale', atten:1.0,          region:'Pembrokeshire',  lat:51.8500, lon:-5.0833, swell:270, offshore:135, tideRef:'Milford Haven', bestTide:'Low–Mid',    type:'Beach break',  level:'All levels',   hazards:'Rips' },
+  { name:'Whitesands Bay', atten:1.0,   region:'Pembrokeshire',  lat:51.8833, lon:-5.2667, swell:270, offshore:90,  tideRef:'St Davids',  bestTide:'Low–Mid',    type:'Beach break',  level:'All levels',   hazards:'Rocks, rips' },
+  // Yorkshire & North East
+  { name:'Scarborough', atten:1.0,      region:'Yorkshire',      lat:54.2777, lon:-0.3938, swell:45,  offshore:270, tideRef:'Scarborough', bestTide:'Low–Mid',    type:'Beach break',  level:'All levels',   hazards:'Groynes' },
+  { name:'Cayton Bay', atten:1.0,       region:'Yorkshire',      lat:54.2333, lon:-0.3667, swell:45,  offshore:225, tideRef:'Scarborough', bestTide:'Low',        type:'Beach/reef',   level:'Intermediate', hazards:'Rocks, rips' },
+  // Scotland
+  { name:'Thurso East', atten:1.0,      region:'Scotland',       lat:58.5936, lon:-3.5085, swell:45,  offshore:180, tideRef:'Thurso', bestTide:'Mid',        type:'Reef break',   level:'Experienced',  hazards:'Sharp reef' },
+  { name:'Pease Bay', atten:1.0,        region:'Scotland',       lat:55.9167, lon:-2.3833, swell:45,  offshore:270, tideRef:'Dunbar', bestTide:'All tides',  type:'Beach break',  level:'All levels',   hazards:'Rips' },
+  // Ireland
+  { name:'Bundoran', atten:1.0,         region:'Ireland',        lat:54.4833, lon:-8.2833, swell:270, offshore:90,  tideRef:'Bundoran',  bestTide:'Mid',        type:'Beach/reef',   level:'All levels',   hazards:'Rocks, rips' },
+  { name:'Lahinch', atten:1.0,          region:'Ireland',        lat:52.9333, lon:-9.3500, swell:270, offshore:90,  tideRef:'Galway',  bestTide:'Mid',        type:'Beach break',  level:'All levels',   hazards:'Rips' },
+];
+
+let currentSpot = SPOTS[0];
 
 function compass(d){const a=['N','NNE','NE','ENE','E','ESE','SE','SSE','S','SSW','SW','WSW','W','WNW','NW','NNW'];return a[Math.round(d/22.5)%16]}
 
@@ -225,8 +283,8 @@ function fullDir(d){
 }
 function arrow(d){const a=['↓','↙','←','↖','↑','↗','→','↘'];return a[Math.round(d/45)%8]}
 function adiff(a,b){let d=Math.abs(a-b)%360;return d>180?360-d:d}
-function offshore(wd){return adiff(wd,OFFSHORE)<50}
-function goodSwell(sd){return adiff(sd,SWELL)<65}
+function offshore(wd){return adiff(wd,currentSpot.offshore)<50}
+function goodSwell(sd){return adiff(sd,currentSpot.swell)<65}
 
 function rate(wH,wP,sD,wS,wD){
   if(wH<0.4) return {score:1,reasons:['too small to surf']};
@@ -253,8 +311,8 @@ function rate(wH,wP,sD,wS,wD){
 }
 
 function to5(s){return Math.round(s/2)}
-function sc(s){return s>=4?'var(--green)':s>=3?'var(--amber)':'var(--coral)'}
-function cl(s){return s>=4?'g':s>=3?'a':'r'}
+function sc(s){return s===5?'var(--green)':s===4?'var(--green-dark)':s===3?'var(--amber)':s===2?'var(--yellow)':'var(--dim)'}
+function cl(s){return s===5?'g5':s===4?'g4':s===3?'a':s===2?'y':'d'}
 function desc(s){return s>=5?'Firing! 🔥':s>=4?'Solid surf':s>=3?'Decent session':s>=2?'Marginal — worth a look':'Not worth it'}
 
 function stars(score,cls,tag){
@@ -333,8 +391,8 @@ async function loadData(){
   document.getElementById('app').style.display='none';
   try{
     const [mr,wr]=await Promise.all([
-      fetch(`https://marine-api.open-meteo.com/v1/marine?latitude=${LAT}&longitude=${LON}&hourly=wave_height,wave_period,wave_direction,sea_surface_temperature&timezone=Europe%2FLondon&forecast_days=1`),
-      fetch(`https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LON}&hourly=windspeed_10m,winddirection_10m&timezone=Europe%2FLondon&forecast_days=1`)
+      fetch(`https://marine-api.open-meteo.com/v1/marine?latitude=${currentSpot.lat}&longitude=${currentSpot.lon}&hourly=wave_height,wave_period,wave_direction,sea_surface_temperature,sea_level_height_msl&timezone=Europe%2FLondon&forecast_days=1`),
+      fetch(`https://api.open-meteo.com/v1/forecast?latitude=${currentSpot.lat}&longitude=${currentSpot.lon}&hourly=windspeed_10m,winddirection_10m&timezone=Europe%2FLondon&forecast_days=1`)
     ]);
     const m=await mr.json(), w=await wr.json();
     const now=new Date(), h=now.getHours();
@@ -342,10 +400,17 @@ async function loadData(){
     const times=m.hourly.time;
     const wH=m.hourly.wave_height, wP=m.hourly.wave_period;
     const wD=m.hourly.wave_direction, seaT=m.hourly.sea_surface_temperature;
+    const tideRaw=m.hourly.sea_level_height_msl;
     const wS=w.hourly.windspeed_10m, wDir=w.hourly.winddirection_10m;
 
+    // Attenuation — apply before scoring or display
+    const cH=wH[h],cS=wS[h],cDir=wDir[h];
+    const atten=currentSpot.atten??1;
+    const aWH = wH.map(v => v != null ? v * atten : v);
+    const acH = cH != null ? cH * atten : cH;
+
     // NOW
-    const {score,reasons}=rate(wH[h],wP[h],wD[h],wS[h],wDir[h]);
+    const {score,reasons}=rate(acH,wP[h],wD[h],wS[h],wDir[h]);
     const d=to5(score); set('rnum',d); setc('rnum',sc(d));
     seth('rstars',stars(d,cl(d),'star'));
     set('rdesc',desc(d));
@@ -354,8 +419,8 @@ async function loadData(){
     // AM / PM
     const amI=Array.from({length:Math.max(0,12-dawn)},(_,i)=>dawn+i).filter(i=>i<24);
     const pmI=Array.from({length:Math.max(0,dusk-12)},(_,i)=>12+i).filter(i=>i<24);
-    const amS=bestScore(amI,wH,wP,wD,wS,wDir);
-    const pmS=bestScore(pmI,wH,wP,wD,wS,wDir);
+    const amS=bestScore(amI,aWH,wP,wD,wS,wDir);
+    const pmS=bestScore(pmI,aWH,wP,wD,wS,wDir);
     const amD=to5(amS); set('ams',amD); setc('ams',sc(amD));
     seth('amst',stars(amD,cl(amD),'astar'));
     set('amd',desc(amD));
@@ -364,27 +429,34 @@ async function loadData(){
     set('pmd',desc(pmD));
 
     // Conditions
-    const cH=wH[h],cP=wP[h],cD=wD[h],cT=seaT[h],cS=wS[h],cDir=wDir[h];
-    set('wh',cH?.toFixed(1)??'—');
-    seth('whb',bdg(cH<0.4?'Flat':cH<0.8?'Small':cH<1.5?'Waist–chest':cH<2?'Head high':'Overhead+',
-      cH>=0.8&&cH<=1.8?'good':cH>0.4?'ok':'poor'));
+    const cP=wP[h],cD=wD[h],cT=seaT[h];
+    set('wh', acH != null ? (acH * 3.28084).toFixed(1) + 'ft' : '—');
+    set('wh-face', acH != null ? (acH * 3.28084 * 0.55).toFixed(1) + 'ft' : '—');
+    const faceH = acH != null ? acH * 3.28084 * 0.55 : 0;
+    seth('whb',bdg(faceH<0.75?'Flat':faceH<1.5?'Small':faceH<3.0?'Thigh–waist':faceH<4.5?'Waist–chest':faceH<6.0?'Head high':faceH<8.0?'Overhead':'Double overhead+',
+      faceH>=1.5&&faceH<=5?'good':faceH>0.75?'ok':'poor'));
     set('wp',cP?.toFixed(0)??'—');
     seth('wpb',bdg(cP>=12?'Groundswell':cP>=10?'Good swell':cP>=7?'Mixed':'Windswell',
       cP>=10?'good':cP>=7?'ok':'poor'));
     set('sd',compass(cD));
     seth('sdb',bdg(goodSwell(cD)?'Good angle':'Off-angle',goodSwell(cD)?'good':'ok'));
-    set('ws',Math.round(cS));
-    set('wdt',`km/h from ${compass(cDir)}`);
+    set('ws', cS != null ? Math.round(cS * 0.621371) : '—');
+    set('wdt',`mph from ${compass(cDir)}`);
     seth('wsb',bdg(cS<8?'Light':cS<20?'Moderate':'Strong',offshore(cDir)?'good':cS<10?'ok':'poor'));
     set('wt',cT?.toFixed(1)??'—');
     seth('wtb',wetsuit(cT));
     set('wda',fullDir(cDir));
+    document.getElementById('wind-arrow-g').style.transform = `rotate(${cDir + 180}deg)`;
     const off=offshore(cDir);
     set('wdo',off?'Offshore ✓':'Onshore');
     seth('wdb',bdg(off?'Offshore':'Onshore',off?'good':'poor'));
 
     // Tides
-    const tH=times.map((_,i)=>2+2*Math.sin((i/12.42)*Math.PI*2-1.2));
+    // Use real tide data from Open-Meteo, fall back to sine if unavailable
+    // Shift values so minimum = 0 (MSL reference -> chart datum approximation)
+    const tH = (tideRaw && tideRaw.some(v=>v!=null))
+      ? (() => { const mn=Math.min(...tideRaw.filter(v=>v!=null)); return tideRaw.map(v=>v!=null?+(v-mn).toFixed(2):null); })()
+      : times.map((_,i)=>2+2*Math.sin((i/12.42)*Math.PI*2-1.2));
     drawTide(tH,h);
     drawMiniTide(tH,h);
     set('tc',tH[h].toFixed(1)+'m');
@@ -401,21 +473,49 @@ async function loadData(){
 
     // Forecast
     const fStart=6, fEnd=21;
-    const mx=Math.max(...wH.slice(fStart,fEnd+1));
+    const mx=Math.max(...aWH.slice(fStart,fEnd+1));
     let fh='';
     for(let i=fStart;i<=Math.min(fEnd,times.length-1);i++){
-      const {score:s}=rate(wH[i],wP[i],wD[i],wS[i],wDir[i]); const ds=to5(s);
-      const bc=sc(ds), bw=mx>0?Math.round((wH[i]/mx)*100):10;
+      const {score:s}=rate(aWH[i],wP[i],wD[i],wS[i],wDir[i]); const ds=to5(s);
+      const bc=sc(ds), bw=mx>0?Math.round((aWH[i]/mx)*100):10;
       const isNow=i===h;
       fh+=`<div class="frow" style="${isNow?'background:#ffffff08;':''}">
         <div class="ftime" style="${isNow?'color:var(--foam);font-weight:600':''}">${isNow?'Now':fmt(times[i])}</div>
         <div class="fbw"><div class="fb" style="width:${bw}%;background:${bc}"></div></div>
-        <div class="fwave">${wH[i]?.toFixed(1)}m</div>
+        <div class="fwave">${aWH[i] != null ? (aWH[i]*3.28084*0.55).toFixed(1)+'ft' : '—'}</div>
+        <div class="fperiod">${wP[i]?.toFixed(0)}s</div>
         <div class="fscore" style="color:${bc}">${ds}/5</div>
       </div>`;
     }
     seth('fstrip',fh);
 
+    // Update header
+    const sp = currentSpot;
+    const snameEl = document.getElementById('sname');
+    snameEl.textContent = sp.name.toUpperCase();
+    // Defer fit until browser has painted and widths are available
+    requestAnimationFrame(() => {
+      snameEl.style.fontSize = '52px';
+      const maxW = snameEl.parentElement.clientWidth - 48;
+      if (maxW <= 0) return;
+      let fs = 52;
+      while (snameEl.scrollWidth > maxW && fs > 18) {
+        fs--;
+        snameEl.style.fontSize = fs + 'px';
+      }
+    });
+    document.getElementById('slabel').textContent = '🌊 '+sp.region;
+    document.getElementById('ssub').textContent = sp.lat.toFixed(4)+'°N · '+Math.abs(sp.lon).toFixed(4)+'°W';
+    document.getElementById('tide-header').textContent = 'Tides · '+sp.tideRef;
+    // Update spot notes
+    document.getElementById('spot-notes').innerHTML = `
+      <div><div class="il">Best Swell</div><div class="iv">${compass(sp.swell)}</div></div>
+      <div><div class="il">Best Wind</div><div class="iv">${compass(sp.offshore)} (offshore)</div></div>
+      <div><div class="il">Best Tide</div><div class="iv">${sp.bestTide}</div></div>
+      <div><div class="il">Break Type</div><div class="iv">${sp.type}</div></div>
+      <div><div class="il">Level</div><div class="iv">${sp.level}</div></div>
+      <div><div class="il">Hazards</div><div class="iv">${sp.hazards}</div></div>
+    `;
     set('upd',`Updated ${now.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})} · Open-Meteo`);
     document.getElementById('app').style.display='block';
     document.getElementById('loading').classList.add('gone');
@@ -427,6 +527,36 @@ async function loadData(){
     set('rdesc','Could not load data — check your connection and refresh.');
   }
 }
+// ── Search ───────────────────────────────────────────────────────────────────
+const searchBox = document.getElementById('search-box');
+const resultsList = document.getElementById('results-list');
+
+searchBox.addEventListener('input', () => {
+  const q = searchBox.value.trim().toLowerCase();
+  if (q.length < 2) { resultsList.style.display='none'; return; }
+  const matches = SPOTS.filter(s =>
+    s.name.toLowerCase().includes(q) || s.region.toLowerCase().includes(q)
+  );
+  if (!matches.length) { resultsList.style.display='none'; return; }
+  resultsList.innerHTML = matches.map(s => `
+    <div class="result-item" onclick="selectSpot('${s.name}')">
+      <div class="result-name">${s.name}</div>
+      <div class="result-region">${s.region}</div>
+    </div>`).join('');
+  resultsList.style.display = 'block';
+});
+
+searchBox.addEventListener('blur', () => {
+  setTimeout(() => resultsList.style.display='none', 150);
+});
+
+function selectSpot(name) {
+  currentSpot = SPOTS.find(s => s.name === name);
+  searchBox.value = '';
+  resultsList.style.display = 'none';
+  loadData();
+}
+
 loadData();
 </script>
 </body>
