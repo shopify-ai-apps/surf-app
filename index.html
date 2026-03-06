@@ -518,8 +518,13 @@ async function loadData(){
     const tH = (tideRaw && tideRaw.some(v=>v!=null))
       ? (() => { const mn=Math.min(...tideRaw.filter(v=>v!=null)); return tideRaw.map(v=>v!=null?+(v-mn).toFixed(2):null); })()
       : times.map((_,i)=>2+2*Math.sin((i/12.42)*Math.PI*2-1.2));
-    drawTide(tH,h);
-    drawMiniTide(tH,h);
+    // Slice tide to 12hrs before and after current hour for display
+    const tSliceStart = Math.max(0, h - 12);
+    const tSliceEnd   = Math.min(tH.length - 1, h + 12);
+    const tHslice     = tH.slice(tSliceStart, tSliceEnd + 1);
+    const hInSlice    = h - tSliceStart;
+    drawTide(tHslice, hInSlice);
+    drawMiniTide(tHslice, hInSlice);
     set('tc',tH[h].toFixed(1)+'m');
     set('tst',tH[h]>tH[Math.max(0,h-1)]?'Rising ↑':'Falling ↓');
     let nHigh=null,nLow=null;
