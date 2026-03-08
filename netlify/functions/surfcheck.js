@@ -8,6 +8,7 @@ function clean(str) {
     .replace(/&amp;/g, '&')
     .replace(/&nbsp;/g, ' ')
     .replace(/&#[0-9]+;/g, '')
+    .replace(/\s+/g, ' ')
     .trim();
 }
 
@@ -34,31 +35,34 @@ exports.handler = async function() {
       };
     }
 
-    const html = await response.text();
+    let html = await response.text();
 
-    // Isolate just the Surfcheck section to avoid matching keywords in scripts/other content
-    const sectionMatch = html.match(/##\s*Surfcheck([\s\S]*?)(?=##\s*\w|<h[23]|$)/i)
-      || html.match(/Surfcheck<\/h2>([\s\S]*?)(?=<h2|<footer|<div class="footer)/i)
-      || html.match(/id="surfcheck"[^>]*>([\s\S]*?)(?=<h2|<footer)/i);
+    // Strip all <script>...</script> blocks first — GTM and other scripts
+    // sit between the surf report <p> tags and pollute the captures
+    html = html.replace(/<script[\s\S]*?<\/script>/gi, '');
 
-    // Fall back to full HTML if section not isolatable, but limit to 4000 chars after "Surfcheck"
-    const idx = html.indexOf('Surfcheck');
-    const section = sectionMatch ? sectionMatch[1] : (idx > -1 ? html.slice(idx, idx + 4000) : html);
+    // Also strip <style> blocks
+    html = html.replace(/<style[\s\S]*?<\/style>/gi, '');
+
+    // Find the Surfcheck section — everything between h2>Surfcheck and the next h2/h3
+    const sectionMatch = html.match(/Surfcheck<\/h2>([\s\S]*?)(?=<h[23])/i);
+    const section = sectionMatch ? sectionMatch[1] : html;
 
     const report = {};
 
-    const extract = (pattern) => {
-      const m = section.match(pattern);
+    // Fields are structured as: <p><strong>Label:</strong> value</p>
+    // Match label in <strong>, capture value up to </p>
+    const extract = (label) => {
+      const re = new RegExp('<strong>\\s*' + label + '[^<]*<\\/strong>([\\s\\S]*?)<\\/p>', 'i');
+      const m = section.match(re);
       return m ? clean(m[1]) : null;
     };
 
-    // Match <strong>Label:</strong> then grab text up to next <strong> tag
-    // Using a short lookahead so we don't bleed into script blocks
-    report.updated    = extract(/Time of Update[^>]*>([\s\S]*?)(?=<strong>)/i);
-    report.conditions = extract(/Todays conditions[^>]*>([\s\S]*?)(?=<strong>)/i);
-    report.swell      = extract(/<strong>\s*Swell\s*[:\s]*<\/strong>([\s\S]*?)(?=<strong>)/i);
-    report.wind       = extract(/<strong>\s*Wind\s*[:\s]*<\/strong>([\s\S]*?)(?=<strong>)/i);
-    report.tides      = extract(/<strong>\s*Tides\s*[:\s]*<\/strong>([\s\S]*?)(?=<strong>|<\/p>|<h[23])/i);
+    report.updated    = extract('Time of Update');
+    report.conditions = extract('Todays conditions');
+    report.swell      = extract('Swell');
+    report.wind       = extract('Wind');
+    report.tides      = extract('Tides');
 
     // Remove empty values
     Object.keys(report).forEach(k => { if (!report[k]) delete report[k]; });
