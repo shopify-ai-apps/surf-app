@@ -134,6 +134,14 @@ header{padding:32px 24px 20px;border-bottom:1px solid #ffffff08;animation:fu .4s
 
 .rbtn{display:block;margin:16px auto;padding:10px 28px;background:transparent;border:1px solid #ffffff15;border-radius:24px;color:var(--dim);font-family:'DM Mono',monospace;font-size:10px;letter-spacing:2px;text-transform:uppercase;cursor:pointer;transition:all .2s}
 .rbtn:hover{border-color:#ffffff30;color:var(--text)}
+
+.day-picker{display:flex;gap:8px;padding:12px 16px 4px;overflow-x:auto}
+.day-btn{flex:1;min-width:0;padding:9px 6px;background:var(--mid);border:1px solid #ffffff0a;border-radius:12px;color:var(--dim);font-family:'DM Mono',monospace;font-size:10px;letter-spacing:1px;text-transform:uppercase;cursor:pointer;transition:all .2s;text-align:center;white-space:nowrap}
+.day-btn:hover{border-color:#ffffff20;color:var(--text)}
+.day-btn.active{background:var(--light);border-color:#ffffff25;color:var(--foam)}
+.day-btn .day-score{font-family:'Bebas Neue',sans-serif;font-size:22px;line-height:1;display:block;margin-top:2px}
+.swell-window{font-family:'DM Mono',monospace;font-size:9px;color:var(--green);margin-top:4px;letter-spacing:.5px}
+.ftide{font-size:14px;color:var(--text);flex-shrink:0;width:22px;text-align:center}
 </style>
 </head>
 <body>
@@ -166,7 +174,9 @@ header{padding:32px 24px 20px;border-bottom:1px solid #ffffff08;animation:fu .4s
     <div class="results-list" id="results-list" style="display:none"></div>
   </div>
 
-  <div class="sh">Now</div>
+  <div class="day-picker" id="day-picker"></div>
+
+  <div class="sh" id="now-header">Now</div>
   <div class="rcard">
     <div class="rlabel">Conditions right now</div>
     <div class="rinner">
@@ -199,6 +209,7 @@ header{padding:32px 24px 20px;border-bottom:1px solid #ffffff08;animation:fu .4s
       <div class="amsr"><div class="ams" id="ams">—</div><div class="amof">/5</div></div>
       <div class="amstars" id="amst"></div>
       <div class="amd" id="amd">—</div>
+      <div class="swell-window" id="am-window"></div>
     </div>
     <div class="amc">
       <div class="amp" style="display:flex;align-items:center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" style="vertical-align:middle;margin-right:6px">
@@ -211,6 +222,7 @@ header{padding:32px 24px 20px;border-bottom:1px solid #ffffff08;animation:fu .4s
       <div class="amsr"><div class="ams" id="pms">—</div><div class="amof">/5</div></div>
       <div class="amstars" id="pmst"></div>
       <div class="amd" id="pmd">—</div>
+      <div class="swell-window" id="pm-window"></div>
     </div>
   </div>
 
@@ -254,6 +266,34 @@ header{padding:32px 24px 20px;border-bottom:1px solid #ffffff08;animation:fu .4s
   <div class="sh">Hourly Forecast</div>
   <div class="fstrip" id="fstrip"></div>
 
+  <!-- Bracklesham-only: webcam + eyeball report -->
+  <div id="bracklesham-live" style="display:none">
+    <div class="sh">Live Webcam</div>
+    <div style="padding:0 16px 16px">
+      <div style="position:relative;width:100%;border-radius:14px;overflow:hidden;background:#0d2240">
+        <iframe
+          id="cam-iframe"
+          src="https://embed.cdn-surfline.com/cam/5a21a1ba096c27001ac4f190.html"
+          style="display:block;width:100%;height:auto;min-height:220px;aspect-ratio:16/9;border:none;overflow:hidden"
+          allow="autoplay"
+          loading="lazy"
+          scrolling="no"
+          title="Bracklesham Bay Live Cam">
+        </iframe>
+      </div>
+      <div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--dim);margin-top:8px;text-align:right">
+        Surfline HD Cam · East Wittering
+      </div>
+    </div>
+
+    <div class="sh">Surf Report</div>
+    <div style="padding:0 16px 16px">
+      <div id="shore-report" style="background:var(--mid);border:1px solid #ffffff0a;border-radius:14px;padding:16px">
+        <div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--dim)">Loading eyeball report…</div>
+      </div>
+    </div>
+  </div>
+
   <div class="sh">Spot Notes</div>
   <div class="sinfo">
     <div class="igrid" id="spot-notes"></div>
@@ -288,6 +328,9 @@ const SPOTS = [
 ];
 
 let currentSpot = SPOTS[0];
+let selectedDay = 0; // 0=today, 1=tomorrow, 2=day after
+let cachedData = null; // cache fetched arrays so day switching doesn't re-fetch
+let renderToken = 0; // increment to cancel stale async renders
 
 function compass(d){const a=['N','NNE','NE','ENE','E','ESE','SE','SSE','S','SSW','SW','WSW','W','WNW','NW','NNW'];return a[Math.round(d/22.5)%16]}
 
@@ -354,19 +397,51 @@ function sunTimes(date){
 
 function bestScore(idxs,wH,wP,wD,wS,wDir){
   if(!idxs.length) return 1;
-  return Math.max(...idxs.map(i=>rate(wH[i],wP[i],wD[i],wS[i],wDir[i]).score));
+  const scores = idxs
+    .filter(i => wH[i] != null)
+    .map(i => rate(wH[i],wP[i],wD[i],wS[i],wDir[i]).score)
+    .sort((a,b) => b-a);
+  if(!scores.length) return 1;
+  // Average of top 3 hours (or fewer) — rewards sustained good conditions
+  const top = scores.slice(0, Math.min(3, scores.length));
+  return top.reduce((a,b) => a+b, 0) / top.length;
 }
 
 
-function drawMiniTide(heights,h){
+function swellWindow(idxs, wH, wP, wD, wS, wDir, times) {
+  // Find best consecutive 3-hr block within session
+  if (idxs.length < 2) return '';
+  let best = null, bestS = -1;
+  for (let i = 0; i < idxs.length - 1; i++) {
+    const a = idxs[i], b = idxs[i+1];
+    // Include third hour if available for a more meaningful window
+    const c = i+2 < idxs.length ? idxs[i+2] : null;
+    const scores = [
+      rate(wH[a],wP[a],wD[a],wS[a],wDir[a]).score,
+      rate(wH[b],wP[b],wD[b],wS[b],wDir[b]).score,
+      ...(c != null ? [rate(wH[c],wP[c],wD[c],wS[c],wDir[c]).score] : [])
+    ];
+    const sv = scores.reduce((x,y)=>x+y,0) / scores.length;
+    if (sv > bestS) { bestS = sv; best = c != null ? [a, b, c] : [a, b]; }
+  }
+  // Only show window if it's genuinely good (6+ out of 10 avg = 3/5 session)
+  if (!best || bestS < 6) return '';
+  const endIdx = Math.min(best[best.length-1]+1, times.length-1);
+  return `Best ${fmt(times[best[0]])}–${fmt(times[endIdx])}`;
+}
+
+function drawMiniTide(heights,h,showDot){
   const svg=document.getElementById('minitide');
   const w=100,ht=101,mn=Math.min(...heights),mx=Math.max(...heights),rng=mx-mn||1;
   const pts=heights.map((v,i)=>
     `${(i/(heights.length-1))*w},${ht-((v-mn)/rng)*(ht-14)-7}`
   );
   const path='M '+pts.join(' L ');
-  const nx=(h/(heights.length-1))*w;
-  const ny=ht-((heights[h]-mn)/rng)*(ht-14)-7;
+  const dotSvg = showDot ? (() => {
+    const nx=(h/(heights.length-1))*w;
+    const ny=ht-((heights[h]-mn)/rng)*(ht-14)-7;
+    return `<circle cx="${nx}" cy="${ny}" r="3" fill="#38bdf8" stroke="#0d2240" stroke-width="1.5"/>`;
+  })() : '';
   const rising=heights[h]>heights[Math.max(0,h-1)];
   svg.innerHTML=`<defs><linearGradient id="mg" x1="0" y1="0" x2="0" y2="1">
     <stop offset="0%" stop-color="#38bdf8" stop-opacity="0.25"/>
@@ -374,24 +449,27 @@ function drawMiniTide(heights,h){
   </linearGradient></defs>
   <path d="${path} L${w},${ht} L0,${ht} Z" fill="url(#mg)"/>
   <path d="${path}" fill="none" stroke="#38bdf8" stroke-width="1.5" opacity="0.7"/>
-  <circle cx="${nx}" cy="${ny}" r="3" fill="#38bdf8" stroke="#0d2240" stroke-width="1.5"/>`;
+  ${dotSvg}`;
   const stateText=rising?'Rising ↑':'Falling ↓';
   document.getElementById('minitide-label').textContent=stateText;
 }
 
-function drawTide(heights,h){
+function drawTide(heights,h,showDot){
   const svg=document.getElementById('tsvg');
   const w=400,ht=60,mn=Math.min(...heights),mx=Math.max(...heights),rng=mx-mn||1;
   const pts=heights.map((v,i)=>`${(i/(heights.length-1))*w},${ht-((v-mn)/rng)*(ht-10)-5}`);
-  const nx=(h/(heights.length-1))*w;
-  const ny=ht-((heights[h]-mn)/rng)*(ht-10)-5;
+  const dotSvg = showDot ? (() => {
+    const nx=(h/(heights.length-1))*w;
+    const ny=ht-((heights[h]-mn)/rng)*(ht-10)-5;
+    return `<circle cx="${nx}" cy="${ny}" r="4" fill="#2dd4a0" stroke="#0d2240" stroke-width="2"/>`;
+  })() : '';
   svg.innerHTML=`<defs><linearGradient id="tg" x1="0" y1="0" x2="0" y2="1">
     <stop offset="0%" stop-color="#2dd4a0" stop-opacity="0.3"/>
     <stop offset="100%" stop-color="#2dd4a0" stop-opacity="0"/>
   </linearGradient></defs>
   <path d="M ${pts.join(' L ')} L${w},${ht} L0,${ht} Z" fill="url(#tg)"/>
   <path d="M ${pts.join(' L ')}" fill="none" stroke="#2dd4a0" stroke-width="1.5" opacity="0.7"/>
-  <circle cx="${nx}" cy="${ny}" r="4" fill="#2dd4a0" stroke="#0d2240" stroke-width="2"/>`;
+  ${dotSvg}`;
 }
 
 function wetsuit(t){
@@ -405,136 +483,98 @@ function set(id,val){document.getElementById(id).textContent=val}
 function setc(id,val){document.getElementById(id).style.color=val}
 function seth(id,val){document.getElementById(id).innerHTML=val}
 
-async function loadData(){
-  document.getElementById('loading').classList.remove('gone');
-  document.getElementById('app').style.display='none';
-  try{
-    const [mr,wr]=await Promise.all([
-      fetch(`https://marine-api.open-meteo.com/v1/marine?latitude=${currentSpot.lat}&longitude=${currentSpot.lon}&hourly=wave_height,wave_period,swell_wave_period,wave_direction,sea_surface_temperature,sea_level_height_msl&timezone=Europe%2FLondon&forecast_days=2`),
-      fetch(`https://api.open-meteo.com/v1/forecast?latitude=${currentSpot.lat}&longitude=${currentSpot.lon}&hourly=windspeed_10m,winddirection_10m&timezone=Europe%2FLondon&forecast_days=2`)
-    ]);
-    const m=await mr.json(), w=await wr.json();
-    const now=new Date(), h=now.getHours();
-    const {dawn,dusk}=sunTimes(now);
-    const times=m.hourly.time;
-    const wH=m.hourly.wave_height, wP=m.hourly.wave_period;
-    const wD=m.hourly.wave_direction, seaT=m.hourly.sea_surface_temperature;
-    const tideRaw=m.hourly.sea_level_height_msl;
-    // Fetch peak wave period separately — not always available, fall back to mean period
+async function renderDay() {
+  if (!cachedData) return;
+  const myToken = ++renderToken;
+  const renderSpot = currentSpot; // snapshot — buoy await must not use stale currentSpot
+  const renderDay_ = selectedDay;
+  const {m, w, sst, tide, now} = cachedData;
+  try {
+    const todayH = now.getHours();
+    const dayOffset = renderDay_ * 24;
+    const times = m.hourly.time;
+    const h = renderDay_ === 0 ? todayH : dayOffset + 12;
+    const selectedDate = new Date(now); selectedDate.setDate(selectedDate.getDate() + renderDay_);
+    const {dawn,dusk} = sunTimes(selectedDate);
+
+    const wH  = m.hourly.wave_height;
+    const wP  = m.hourly.wave_period;
+    const wD  = m.hourly.wave_direction;
+    const seaT = (sst?.hourly?.sea_surface_temperature) ?? [];
+    const tideRaw = (tide?.hourly?.sea_level_height_msl) ?? (m.hourly.sea_level_height_msl) ?? [];
+
     const wSwellRaw = m.hourly.swell_wave_period;
+    const wSwellH   = m.hourly.swell_wave_height;
+    const wSwellDir = m.hourly.swell_wave_direction;
     const wSwell = (wSwellRaw && wSwellRaw.some(v=>v!=null))
-      ? wSwellRaw.map((v,i)=>v??wP[i])
+      ? wSwellRaw.map((v,i) => v ?? wP[i])
       : wP;
-    const wS=w.hourly.windspeed_10m, wDir=w.hourly.winddirection_10m;
+    const wSwellDirArr = (wSwellDir && wSwellDir.some(v=>v!=null)) ? wSwellDir : wD;
+    const wS   = w.hourly.windspeed_10m;
+    const wDir = w.hourly.winddirection_10m;
 
-    // Attenuation — apply before scoring or display
-    const cH=wH[h],cS=wS[h],cDir=wDir[h];
-    const atten=currentSpot.atten??1;
-    const aWH = wH.map(v => v != null ? v * atten : v);
-    const acH = cH != null ? cH * atten : cH;
+    const atten = renderSpot.atten ?? 1;
+    const aWH   = wH.map(v => v != null ? v * atten : v);
+    const acH   = wH[h] != null ? wH[h] * atten : wH[h];
+    const cS    = wS[h];
+    const cDir  = wDir[h];
 
-    // NOW — displayed after buoy fetch below
+    // --- AM / PM scores (no await needed) ---
+    const amI = Array.from({length:Math.max(0,12-dawn)}, (_,i) => dayOffset+dawn+i).filter(i => i < times.length);
+    const pmI = Array.from({length:Math.max(0,dusk-12)}, (_,i) => dayOffset+12+i).filter(i => i < times.length);
+    const amS = bestScore(amI, aWH, wSwell, wSwellDirArr, wS, wDir);
+    const pmS = bestScore(pmI, aWH, wSwell, wSwellDirArr, wS, wDir);
+    const amD = to5(amS); set('ams',amD); setc('ams',sc(amD));
+    seth('amst', stars(amD, cl(amD), 'astar'));
+    set('amd', desc(amD));
+    const pmD = to5(pmS); set('pms',pmD); setc('pms',sc(pmD));
+    seth('pmst', stars(pmD, cl(pmD), 'astar'));
+    set('pmd', desc(pmD));
 
-    // AM / PM
-    const amI=Array.from({length:Math.max(0,12-dawn)},(_,i)=>dawn+i).filter(i=>i<24);
-    const pmI=Array.from({length:Math.max(0,dusk-12)},(_,i)=>12+i).filter(i=>i<24);
-    const amS=bestScore(amI,aWH,wSwell.map((v,i)=>v??wP[i]),wD,wS,wDir);
-    const pmS=bestScore(pmI,aWH,wSwell.map((v,i)=>v??wP[i]),wD,wS,wDir);
-    const amD=to5(amS); set('ams',amD); setc('ams',sc(amD));
-    seth('amst',stars(amD,cl(amD),'astar'));
-    set('amd',desc(amD));
-    const pmD=to5(pmS); set('pms',pmD); setc('pms',sc(pmD));
-    seth('pmst',stars(pmD,cl(pmD),'astar'));
-    set('pmd',desc(pmD));
+    const amWin = swellWindow(amI, aWH, wSwell, wSwellDirArr, wS, wDir, times);
+    const pmWin = swellWindow(pmI, aWH, wSwell, wSwellDirArr, wS, wDir, times);
+    set('am-window', amWin);
+    set('pm-window', pmWin);
 
-    // Buoy data — fetch live from CCO proxy if spot has a buoy mapped
-    let buoyH = null, buoyP = null, buoyDir = null, buoyT = null, buoyLabel = null;
-    if (currentSpot.buoy) {
-      try {
-        const br = await fetch(`/api/buoy?sensor=${encodeURIComponent(currentSpot.buoy)}`);
-        if (br.ok) {
-          const bd = await br.json();
-          const feat = bd.features?.[0];
-          if (feat?.properties) {
-            const p = feat.properties;
-            // CCO GeoJSON properties (all lowercase)
-            buoyH   = p.hs   != null ? parseFloat(p.hs)   : null;
-            buoyP   = p.tp   != null ? parseFloat(p.tp)   : null;
-            buoyDir = p.pdir != null ? parseFloat(p.pdir) : null;
-            buoyT   = p.sst  != null ? parseFloat(p.sst)  : null;
-            buoyLabel = currentSpot.buoy;
-            // Parse buoy timestamp e.g. "20260306#143000" → "14:30"
-            const rawDate = feat.properties.date ?? '';
-            const timePart = rawDate.split('#')[1];
-            if (timePart) {
-              buoyLabel += ` · ${timePart.slice(0,2)}:${timePart.slice(2,4)}`;
-            }
-          }
-        }
-      } catch(e) { /* fall back to model data */ }
-    }
+    // --- Day picker (before buoy await so buttons render immediately) ---
+    const dayNames = ['Today','Tomorrow',''];
+    const d2date = new Date(now); d2date.setDate(d2date.getDate()+2);
+    dayNames[2] = d2date.toLocaleDateString('en-GB',{weekday:'short'});
+    const dayScores = [0,1,2].map(dd => {
+      const dOff = dd * 24;
+      const allI = Array.from({length:16},(_,i) => dOff+6+i).filter(i => i < times.length);
+      return to5(bestScore(allI, aWH, wSwell, wSwellDirArr, wS, wDir));
+    });
+    const pickerHTML = dayNames.map((name,i) =>
+      `<button class="day-btn${renderDay_===i?' active':''}" onmousedown="selectDay(${i})">${name}</button>`
+    ).join('');
+    seth('day-picker', pickerHTML);
 
-    // Use buoy data for current conditions where available, model as fallback
-    const useH   = buoyH   != null ? buoyH   : acH;
-    const useP   = buoyP   != null ? buoyP   : (wSwell[h] ?? wP[h]);
-    const useDir = buoyDir != null ? buoyDir : wD[h];
-    const useT   = buoyT   != null ? buoyT   : seaT[h];
-    const dataSource = buoyLabel ? `Buoy · ${buoyLabel}` : 'Open-Meteo';
+    // --- Show/hide Now card ---
+    document.getElementById('now-header').style.display = renderDay_ === 0 ? '' : 'none';
+    document.querySelector('.rcard').style.display      = renderDay_ === 0 ? '' : 'none';
 
-    // NOW scoring using best available data
-    const {score,reasons}=rate(useH,useP,useDir,wS[h],wDir[h]);
-    const d=to5(score); set('rnum',d); setc('rnum',sc(d));
-    seth('rstars',stars(d,cl(d),'star'));
-    set('rdesc',desc(d));
-    set('rreason',reasons.length?reasons.join(' · '):'Conditions looking good');
-
-    // Conditions
-    const cP=wP[h],cD=wD[h],cT=useT;
-    const dispH = useH;
-    set('wh', dispH != null ? (dispH * 3.28084).toFixed(1) + 'ft' : '—');
-    set('wh-face', dispH != null ? (dispH * 3.28084 * 0.55).toFixed(1) + 'ft' : '—');
-    const faceH = dispH != null ? dispH * 3.28084 * 0.55 : 0;
-    seth('whb',bdg(faceH<0.75?'Flat':faceH<1.5?'Small':faceH<3.0?'Thigh–waist':faceH<4.5?'Waist–chest':faceH<6.0?'Head high':faceH<8.0?'Overhead':'Double overhead+',
-      faceH>=1.5&&faceH<=5?'good':faceH>0.75?'ok':'poor'));
-    set('wp', useP?.toFixed(0) ?? '—');
-    seth('wpb',bdg(useP>=12?'Groundswell':useP>=10?'Good swell':useP>=7?'Mixed':'Windswell',
-      useP>=10?'good':useP>=7?'ok':'poor'));
-    set('sd',compass(cD));
-    seth('sdb',bdg(goodSwell(cD)?'Good angle':'Off-angle',goodSwell(cD)?'good':'ok'));
-    set('ws', cS != null ? Math.round(cS * 0.621371) : '—');
-    set('wdt',`mph from ${compass(cDir)}`);
-    seth('wsb',bdg(cS<8?'Light':cS<20?'Moderate':'Strong',offshore(cDir)?'good':cS<10?'ok':'poor'));
-    set('wt',cT?.toFixed(1)??'—');
-    seth('wtb',wetsuit(cT));
-    set('wda',fullDir(cDir));
-    document.getElementById('wind-arrow-g').style.transform = `rotate(${cDir + 180}deg)`;
-    const off=offshore(cDir);
-    set('wdo',off?'Offshore ✓':'Onshore');
-    seth('wdb',bdg(off?'Offshore':'Onshore',off?'good':'poor'));
-
-    // Tides
-    // Use real tide data from Open-Meteo, fall back to sine if unavailable
-    // Shift values so minimum = 0 (MSL reference -> chart datum approximation)
+    // --- Tides (before await so chart renders immediately) ---
     const tH = (tideRaw && tideRaw.some(v=>v!=null))
       ? (() => { const mn=Math.min(...tideRaw.filter(v=>v!=null)); return tideRaw.map(v=>v!=null?+(v-mn).toFixed(2):null); })()
-      : times.map((_,i)=>2+2*Math.sin((i/12.42)*Math.PI*2-1.2));
-    // Slice tide to 12hrs before and after current hour for display
-    const tSliceStart = Math.max(0, h - 12);
-    const tSliceEnd   = Math.min(tH.length - 1, h + 12);
-    const tHslice     = tH.slice(tSliceStart, tSliceEnd + 1);
+      : times.map((_,i) => 2+2*Math.sin((i/12.42)*Math.PI*2-1.2));
+    const tSliceStart = Math.max(0, h-12);
+    const tSliceEnd   = Math.min(tH.length-1, h+12);
+    const tHslice     = tH.slice(tSliceStart, tSliceEnd+1);
     const hInSlice    = h - tSliceStart;
-    drawTide(tHslice, hInSlice);
-    drawMiniTide(tHslice, hInSlice);
-    set('tc',tH[h].toFixed(1)+'m');
-    set('tst',tH[h]>tH[Math.max(0,h-1)]?'Rising ↑':'Falling ↓');
-    let nHigh=null,nLow=null;
-    for(let i=h+1;i<tH.length-1;i++){
-      const p=tH[i-1],c=tH[i],n=tH[i+1];
-      if(!nHigh&&c>p&&c>n) nHigh=times[i];
-      if(!nLow&&c<p&&c<n)  nLow=times[i];
-      if(nHigh&&nLow) break;
+    const showTideDot = renderDay_ === 0;
+    drawTide(tHslice, hInSlice, showTideDot);
+    drawMiniTide(tHslice, hInSlice, showTideDot);
+    const tCur = tH[h] ?? tH[Math.max(0,h-1)];
+    set('tc', tCur!=null ? tCur.toFixed(1)+'m' : '—');
+    set('tst', tH[h]>tH[Math.max(0,h-1)] ? 'Rising ↑' : 'Falling ↓');
+    let nHigh=null, nLow=null;
+    for (let i=h+1; i<tH.length-1; i++) {
+      const tp=tH[i-1], tc=tH[i], tn=tH[i+1];
+      if (!nHigh && tc>tp && tc>tn) nHigh=times[i];
+      if (!nLow  && tc<tp && tc<tn) nLow=times[i];
+      if (nHigh && nLow) break;
     }
-    // Whichever tide is next goes in the prominent centre slot
     const highFirst = nHigh && (!nLow || nHigh <= nLow);
     set('next1-label', highFirst ? 'Next High' : 'Next Low');
     set('next1-val',   highFirst ? (nHigh?fmt(nHigh):'—') : (nLow?fmt(nLow):'—'));
@@ -543,55 +583,151 @@ async function loadData(){
     set('next2-val',   highFirst ? (nLow?fmt(nLow):'—') : (nHigh?fmt(nHigh):'—'));
     set('next2-sub',   highFirst ? 'low tide' : 'high tide');
 
-    // Forecast
-    const fStart=6, fEnd=21;
-    const mx=Math.max(...aWH.slice(fStart,fEnd+1));
+    // --- Forecast strip ---
+    const fStart=dayOffset+6, fEnd=dayOffset+21;
+    const fSlice=aWH.slice(fStart,fEnd+1).filter(v=>v!=null);
+    const fMax=fSlice.length ? Math.max(...fSlice) : 1;
     let fh='';
-    for(let i=fStart;i<=Math.min(fEnd,times.length-1);i++){
-      const {score:s}=rate(aWH[i],wSwell[i]??wP[i],wD[i],wS[i],wDir[i]); const ds=to5(s);
-      const bc=sc(ds), bw=mx>0?Math.round((aWH[i]/mx)*100):10;
-      const isNow=i===h;
+    for (let i=fStart; i<=Math.min(fEnd,times.length-1); i++) {
+      const {score:fs}=rate(aWH[i],wSwell[i]??wP[i],wSwellDirArr[i]??wD[i],wS[i],wDir[i]);
+      const fds=to5(fs), fbc=sc(fds), fbw=fMax>0?Math.round((aWH[i]/fMax)*100):10;
+      const isNow=(renderDay_===0 && i===h);
+      const tideVal=tH[i], tidePrev=tH[Math.max(0,i-1)];
+      const tideArrow=tideVal!=null&&tidePrev!=null?(tideVal>tidePrev?'↑':'↓'):'';
       fh+=`<div class="frow" style="${isNow?'background:#ffffff08;':''}">
         <div class="ftime" style="${isNow?'color:var(--foam);font-weight:600':''}">${isNow?'Now':fmt(times[i])}</div>
-        <div class="fbw"><div class="fb" style="width:${bw}%;background:${bc}"></div></div>
-        <div class="fwave">${aWH[i] != null ? (aWH[i]*3.28084*0.55).toFixed(1)+'ft' : '—'}</div>
+        <div class="fbw"><div class="fb" style="width:${fbw}%;background:${fbc}"></div></div>
+        <div class="fwave">${aWH[i]!=null?(aWH[i]*3.28084*0.55).toFixed(1)+'ft':'—'}</div>
         <div class="fperiod">${(wSwell[i]??wP[i])?.toFixed(0)}s</div>
-        <div class="fscore" style="color:${bc}">${ds}/5</div>
+        <div class="ftide" title="${tideVal!=null?tideVal.toFixed(1):''}">${tideArrow}</div>
+        <div class="fscore" style="color:${fbc}">${fds}/5</div>
       </div>`;
     }
-    seth('fstrip',fh);
+    seth('fstrip', fh);
 
-    // Update header
-    const sp = currentSpot;
+    // --- Header / spot info ---
     const snameEl = document.getElementById('sname');
-    snameEl.textContent = sp.name.toUpperCase();
-    // Defer fit until browser has painted and widths are available
+    snameEl.textContent = renderSpot.name.toUpperCase();
     requestAnimationFrame(() => {
       snameEl.style.fontSize = '52px';
       const maxW = snameEl.parentElement.clientWidth - 48;
       if (maxW <= 0) return;
       let fs = 52;
-      while (snameEl.scrollWidth > maxW && fs > 18) {
-        fs--;
-        snameEl.style.fontSize = fs + 'px';
-      }
+      while (snameEl.scrollWidth > maxW && fs > 18) { fs--; snameEl.style.fontSize = fs+'px'; }
     });
-    document.getElementById('slabel').textContent = sp.region;
-    document.getElementById('ssub').textContent = sp.lat.toFixed(4)+'°N · '+Math.abs(sp.lon).toFixed(4)+'°W';
-    document.getElementById('tide-header').textContent = 'Tides · '+sp.tideRef;
-    // Update spot notes
+    document.getElementById('slabel').textContent = renderSpot.region;
+    document.getElementById('ssub').textContent = renderSpot.lat.toFixed(4)+'°N · '+Math.abs(renderSpot.lon).toFixed(4)+'°W';
+    document.getElementById('tide-header').textContent = 'Tides · '+renderSpot.tideRef;
     document.getElementById('spot-notes').innerHTML = `
-      <div><div class="il">Best Swell</div><div class="iv">${compass(sp.swell)}</div></div>
-      <div><div class="il">Best Wind</div><div class="iv">${compass(sp.offshore)} (offshore)</div></div>
-      <div><div class="il">Best Tide</div><div class="iv">${sp.bestTide}</div></div>
-      <div><div class="il">Break Type</div><div class="iv">${sp.type}</div></div>
-      <div><div class="il">Level</div><div class="iv">${sp.level}</div></div>
-      <div><div class="il">Hazards</div><div class="iv">${sp.hazards}</div></div>
+      <div><div class="il">Best Swell</div><div class="iv">${compass(renderSpot.swell)}</div></div>
+      <div><div class="il">Best Wind</div><div class="iv">${compass(renderSpot.offshore)} (offshore)</div></div>
+      <div><div class="il">Best Tide</div><div class="iv">${renderSpot.bestTide}</div></div>
+      <div><div class="il">Break Type</div><div class="iv">${renderSpot.type}</div></div>
+      <div><div class="il">Level</div><div class="iv">${renderSpot.level}</div></div>
+      <div><div class="il">Hazards</div><div class="iv">${renderSpot.hazards}</div></div>
     `;
-    set('upd',`Updated ${now.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})} · ${dataSource}`);
-    document.getElementById('app').style.display='block';
+
+    // Bracklesham-only: show webcam + fetch eyeball report
+    const isBracklesham = renderSpot.name === 'Bracklesham Bay';
+    document.getElementById('bracklesham-live').style.display = isBracklesham ? '' : 'none';
+    if (isBracklesham) loadShoreReport();
+
+    // --- Buoy fetch (async — check token after) ---
+    let buoyH=null, buoyP=null, buoyDir=null, buoyT=null, buoyLabel=null;
+    if (renderSpot.buoy) {
+      try {
+        const br = await fetch(`/api/buoy?sensor=${encodeURIComponent(renderSpot.buoy)}`);
+        if (myToken !== renderToken) return; // stale — newer render started
+        if (br.ok) {
+          const bd = await br.json();
+          if (myToken !== renderToken) return;
+          const feat = bd.features?.[0];
+          if (feat?.properties) {
+            const p = feat.properties;
+            buoyH   = p.hs   != null ? parseFloat(p.hs)   : null;
+            buoyP   = p.tp   != null ? parseFloat(p.tp)   : null;
+            buoyDir = p.pdir != null ? parseFloat(p.pdir) : null;
+            buoyT   = p.sst  != null ? parseFloat(p.sst)  : null;
+            buoyLabel = renderSpot.buoy;
+            const rawDate = feat.properties.date ?? '';
+            const timePart = rawDate.split('#')[1];
+            if (timePart) buoyLabel += ` · ${timePart.slice(0,2)}:${timePart.slice(2,4)}`;
+          }
+        }
+      } catch(e) { /* fall through to model data */ }
+    }
+
+    // Token check: if a newer render started while we awaited, bail
+    if (myToken !== renderToken) return;
+
+    const useH   = buoyH   != null ? buoyH   : acH;
+    const useP   = buoyP   != null ? buoyP   : (wSwell[h] ?? wP[h]);
+    const useDir = buoyDir != null ? buoyDir : (wSwellDirArr[h] ?? wD[h]);
+    const useT   = buoyT   != null ? buoyT   : seaT[h];
+    const dataSource = buoyLabel ? `Buoy · ${buoyLabel}` : 'MFWAM · MeteoFrance';
+
+    // --- Now card ---
+    if (renderDay_ === 0) {
+      const {score,reasons} = rate(useH, useP, useDir, cS, cDir);
+      const nd = to5(score); set('rnum',nd); setc('rnum',sc(nd));
+      seth('rstars', stars(nd, cl(nd), 'star'));
+      set('rdesc', desc(nd));
+      set('rreason', reasons.length ? reasons.join(' · ') : 'Conditions looking good');
+
+      const cD = wSwellDirArr[h] ?? wD[h];
+      const dispH = useH;
+      set('wh', dispH!=null ? (dispH*3.28084).toFixed(1)+'ft' : '—');
+      set('wh-face', dispH!=null ? (dispH*3.28084*0.55).toFixed(1)+'ft' : '—');
+      const faceH = dispH!=null ? dispH*3.28084*0.55 : 0;
+      seth('whb', bdg(faceH<0.75?'Flat':faceH<1.5?'Small':faceH<3.0?'Thigh–waist':faceH<4.5?'Waist–chest':faceH<6.0?'Head high':faceH<8.0?'Overhead':'Double overhead+',
+        faceH>=1.5&&faceH<=5?'good':faceH>0.75?'ok':'poor'));
+      set('wp', useP?.toFixed(0) ?? '—');
+      seth('wpb', bdg(useP>=12?'Groundswell':useP>=10?'Good swell':useP>=7?'Mixed':'Windswell',
+        useP>=10?'good':useP>=7?'ok':'poor'));
+      set('sd', compass(cD));
+      seth('sdb', bdg(goodSwell(cD)?'Good angle':'Off-angle', goodSwell(cD)?'good':'ok'));
+      set('ws', cS!=null ? Math.round(cS*0.621371) : '—');
+      set('wdt', `mph from ${compass(cDir)}`);
+      seth('wsb', bdg(cS<8?'Light':cS<20?'Moderate':'Strong', offshore(cDir)?'good':cS<10?'ok':'poor'));
+      set('wt', useT?.toFixed(1) ?? '—');
+      seth('wtb', wetsuit(useT));
+      set('wda', fullDir(cDir));
+      document.getElementById('wind-arrow-g').style.transform = `rotate(${cDir+180}deg)`;
+      const off = offshore(cDir);
+      set('wdo', off?'Offshore ✓':'Onshore');
+      seth('wdb', bdg(off?'Offshore':'Onshore', off?'good':'poor'));
+    }
+
+    set('upd', `Updated ${now.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})} · ${dataSource}`);
+    document.getElementById('app').style.display = 'block';
     document.getElementById('loading').classList.add('gone');
-  } catch(e){
+  } catch(e) {
+    console.error('renderDay error:', e);
+    document.getElementById('app').style.display = 'block';
+    document.getElementById('loading').classList.add('gone');
+    seth('rnum','!');
+    set('rdesc','Could not render — check console.');
+  }
+}
+
+
+async function loadData(){
+  cachedData = null;
+  document.getElementById('loading').classList.remove('gone');
+  document.getElementById('app').style.display='none';
+  try {
+    const [mr,wr,sr,tr]=await Promise.all([
+      fetch(`https://marine-api.open-meteo.com/v1/marine?latitude=${currentSpot.lat}&longitude=${currentSpot.lon}&hourly=wave_height,wave_period,swell_wave_period,swell_wave_height,swell_wave_direction,wave_direction&timezone=Europe%2FLondon&forecast_days=3&models=meteofrance_wave`),
+      fetch(`https://api.open-meteo.com/v1/forecast?latitude=${currentSpot.lat}&longitude=${currentSpot.lon}&hourly=windspeed_10m,winddirection_10m&timezone=Europe%2FLondon&forecast_days=3`),
+      fetch(`https://marine-api.open-meteo.com/v1/marine?latitude=${currentSpot.lat}&longitude=${currentSpot.lon}&hourly=sea_surface_temperature&timezone=Europe%2FLondon&forecast_days=3`),
+      fetch(`https://marine-api.open-meteo.com/v1/marine?latitude=${currentSpot.lat}&longitude=${currentSpot.lon}&hourly=sea_level_height_msl&timezone=Europe%2FLondon&forecast_days=3`)
+    ]);
+    if (!mr.ok) { const e=await mr.json(); throw new Error('Wave API: '+(e.reason||mr.status)); }
+    if (!wr.ok) { const e=await wr.json(); throw new Error('Wind API: '+(e.reason||wr.status)); }
+    const m=await mr.json(), w=await wr.json(), s=sr.ok ? await sr.json() : null, t=tr.ok ? await tr.json() : null;
+    cachedData = { m, w, sst: s, tide: t, now: new Date() };
+    renderDay();
+  } catch(e) {
     console.error(e);
     document.getElementById('app').style.display='block';
     document.getElementById('loading').classList.add('gone');
@@ -611,7 +747,7 @@ searchBox.addEventListener('input', () => {
   );
   if (!matches.length) { resultsList.style.display='none'; return; }
   resultsList.innerHTML = matches.map(s => `
-    <div class="result-item" onclick="selectSpot('${s.name}')">
+    <div class="result-item" onmousedown="selectSpot('${s.name}')">
       <div class="result-name">${s.name}</div>
       <div class="result-region">${s.region}</div>
     </div>`).join('');
@@ -622,8 +758,45 @@ searchBox.addEventListener('blur', () => {
   setTimeout(() => resultsList.style.display='none', 150);
 });
 
-function selectSpot(name) {
+function loadShoreReport() {
+  const el = document.getElementById('shore-report');
+  if (!el) return;
+  fetch('/api/surfcheck')
+    .then(r => r.ok ? r.json() : Promise.reject(r.status))
+    .then(d => {
+      if (!d.conditions && !d.updated) {
+        el.innerHTML = `<div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--dim)">Report unavailable</div>`;
+        return;
+      }
+      el.innerHTML = `
+        ${d.updated ? `<div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--dim);margin-bottom:12px">Updated ${d.updated}</div>` : ''}
+        ${d.conditions ? `<div style="font-size:14px;color:var(--foam);line-height:1.5;margin-bottom:12px">${d.conditions}</div>` : ''}
+        <div style="display:grid;gap:8px">
+          ${d.swell ? `<div style="display:flex;justify-content:space-between;align-items:center"><span style="font-family:'DM Mono',monospace;font-size:10px;color:var(--dim);letter-spacing:1px;text-transform:uppercase">Swell</span><span style="font-size:13px;color:var(--text)">${d.swell}</span></div>` : ''}
+          ${d.wind  ? `<div style="display:flex;justify-content:space-between;align-items:center"><span style="font-family:'DM Mono',monospace;font-size:10px;color:var(--dim);letter-spacing:1px;text-transform:uppercase">Wind</span><span style="font-size:13px;color:var(--text)">${d.wind}</span></div>` : ''}
+          ${d.tides ? `<div style="display:flex;justify-content:space-between;align-items:center"><span style="font-family:'DM Mono',monospace;font-size:10px;color:var(--dim);letter-spacing:1px;text-transform:uppercase">Tides</span><span style="font-size:13px;color:var(--text)">${d.tides}</span></div>` : ''}
+        </div>
+        <div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--dim);margin-top:12px;text-align:right">Shore Watersports · East Wittering</div>
+      `;
+    })
+    .catch(() => {
+      el.innerHTML = `<div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--dim)">Report unavailable — check connection</div>`;
+    });
+}
+
+window.selectDay = function selectDay(d) {
+  selectedDay = d;
+  if (cachedData) {
+    document.getElementById('app').style.display='block';
+    renderDay();
+  } else {
+    loadData();
+  }
+}
+
+window.selectSpot = function selectSpot(name) {
   currentSpot = SPOTS.find(s => s.name === name);
+  selectedDay = 0;
   searchBox.value = '';
   resultsList.style.display = 'none';
   loadData();
