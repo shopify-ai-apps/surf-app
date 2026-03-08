@@ -2,10 +2,9 @@
 // Called from the frontend as /api/surfcheck
 // Cached for 30 minutes — the report only updates a few times a day.
 
-// Strip any HTML tags and decode basic entities from a captured string
 function clean(str) {
   return str
-    .replace(/<[^>]*>/g, '')   // remove any tags e.g. </span> fragments
+    .replace(/<[^>]*>/g, '')
     .replace(/&amp;/g, '&')
     .replace(/&nbsp;/g, ' ')
     .replace(/&#[0-9]+;/g, '')
@@ -36,25 +35,32 @@ exports.handler = async function() {
     }
 
     const html = await response.text();
+
+    // Isolate just the Surfcheck section to avoid matching keywords in scripts/other content
+    const sectionMatch = html.match(/##\s*Surfcheck([\s\S]*?)(?=##\s*\w|<h[23]|$)/i)
+      || html.match(/Surfcheck<\/h2>([\s\S]*?)(?=<h2|<footer|<div class="footer)/i)
+      || html.match(/id="surfcheck"[^>]*>([\s\S]*?)(?=<h2|<footer)/i);
+
+    // Fall back to full HTML if section not isolatable, but limit to 4000 chars after "Surfcheck"
+    const idx = html.indexOf('Surfcheck');
+    const section = sectionMatch ? sectionMatch[1] : (idx > -1 ? html.slice(idx, idx + 4000) : html);
+
     const report = {};
 
-    // Each field is wrapped like:
-    //   <strong>Time of Update:</strong> </span>Sunday, 8th February...
-    // We match the label, then grab everything up to the next <strong> or end of paragraph,
-    // then strip any stray tags with clean().
-
     const extract = (pattern) => {
-      const m = html.match(pattern);
+      const m = section.match(pattern);
       return m ? clean(m[1]) : null;
     };
 
-    report.updated    = extract(/Time of Update[^>]*>([^]*?)(?=<strong>|<\/p>|<br)/i);
-    report.conditions = extract(/Todays conditions[^>]*>([^]*?)(?=<strong>|<\/p>|<br)/i);
-    report.swell      = extract(/>\s*Swell[^>]*>([^]*?)(?=<strong>|<\/p>|<br)/i);
-    report.wind       = extract(/>\s*Wind[^>]*>([^]*?)(?=<strong>|<\/p>|<br)/i);
-    report.tides      = extract(/>\s*Tides[^>]*>([^]*?)(?=<strong>|<\/p>|<br)/i);
+    // Match <strong>Label:</strong> then grab text up to next <strong> tag
+    // Using a short lookahead so we don't bleed into script blocks
+    report.updated    = extract(/Time of Update[^>]*>([\s\S]*?)(?=<strong>)/i);
+    report.conditions = extract(/Todays conditions[^>]*>([\s\S]*?)(?=<strong>)/i);
+    report.swell      = extract(/<strong>\s*Swell\s*[:\s]*<\/strong>([\s\S]*?)(?=<strong>)/i);
+    report.wind       = extract(/<strong>\s*Wind\s*[:\s]*<\/strong>([\s\S]*?)(?=<strong>)/i);
+    report.tides      = extract(/<strong>\s*Tides\s*[:\s]*<\/strong>([\s\S]*?)(?=<strong>|<\/p>|<h[23])/i);
 
-    // Remove empty strings
+    // Remove empty values
     Object.keys(report).forEach(k => { if (!report[k]) delete report[k]; });
 
     if (!report.updated && !report.conditions) {
