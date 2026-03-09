@@ -6,3 +6,8 @@
   from = "/api/buoy"
   to = "/.netlify/functions/buoy"
   status = 200
+
+[[redirects]]
+  from = "/api/surfcheck"
+  to = "/.netlify/functions/surfcheck"
+  status = 200
