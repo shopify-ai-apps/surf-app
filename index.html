@@ -829,8 +829,15 @@ loadData();
 // ── Webcam auto-fullscreen on landscape rotation ──────────────────────────
 (function() {
   function isInViewport(el) {
-    const r = el.getBoundingClientRect();
-    return r.top < window.innerHeight && r.bottom > 0;
+    // Walk up to the nearest block container with real dimensions
+    let target = el;
+    while (target && target.getBoundingClientRect().height === 0) {
+      target = target.parentElement;
+    }
+    if (!target) return false;
+    const r = target.getBoundingClientRect();
+    // True if any part of the element is within the viewport
+    return r.bottom > 0 && r.top < (window.innerHeight || document.documentElement.clientHeight);
   }
 
   function enterFullscreen(el) {
