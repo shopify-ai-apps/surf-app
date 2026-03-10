@@ -826,56 +826,7 @@ window.selectSpot = function selectSpot(name) {
 
 loadData();
 
-// ── Webcam auto-fullscreen on landscape rotation ──────────────────────────
-(function() {
-  function isInViewport(el) {
-    // Walk up to the nearest block container with real dimensions
-    let target = el;
-    while (target && target.getBoundingClientRect().height === 0) {
-      target = target.parentElement;
-    }
-    if (!target) return false;
-    const r = target.getBoundingClientRect();
-    // True if any part of the element is within the viewport
-    return r.bottom > 0 && r.top < (window.innerHeight || document.documentElement.clientHeight);
-  }
 
-  function enterFullscreen(el) {
-    const fn = el.requestFullscreen || el.webkitRequestFullscreen || el.mozRequestFullScreen || el.msRequestFullscreen;
-    if (fn) fn.call(el);
-  }
-
-  function exitFullscreen() {
-    const fn = document.exitFullscreen || document.webkitExitFullscreen || document.mozCancelFullScreen || document.msExitFullscreen;
-    if (fn) fn.call(document);
-  }
-
-  function isLandscape() {
-    if (screen.orientation) return screen.orientation.type.startsWith('landscape');
-    return window.innerWidth > window.innerHeight;
-  }
-
-  function handleOrientationChange() {
-    const iframe = document.getElementById('cam-iframe');
-    if (!iframe) return;
-    const live = document.getElementById('bracklesham-live');
-    if (!live || live.style.display === 'none') return;
-
-    if (isLandscape() && isInViewport(iframe)) {
-      // Small delay lets the browser finish rotating before requesting fullscreen
-      setTimeout(() => enterFullscreen(iframe), 200);
-    } else {
-      const fsEl = document.fullscreenElement || document.webkitFullscreenElement;
-      if (fsEl) exitFullscreen();
-    }
-  }
-
-  if (screen.orientation) {
-    screen.orientation.addEventListener('change', handleOrientationChange);
-  } else {
-    window.addEventListener('orientationchange', handleOrientationChange);
-  }
-})();
 </script>
 </body>
 </html>
