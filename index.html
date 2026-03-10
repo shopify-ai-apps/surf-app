@@ -275,7 +275,8 @@ header{padding:32px 24px 20px;border-bottom:1px solid #ffffff08;animation:fu .4s
           id="cam-iframe"
           src="https://embed.cdn-surfline.com/cam/5a21a1ba096c27001ac4f190.html"
           style="display:block;width:100%;height:auto;min-height:220px;aspect-ratio:16/9;border:none;overflow:hidden"
-          allow="autoplay"
+          allow="autoplay; fullscreen"
+          allowfullscreen
           loading="lazy"
           scrolling="no"
           title="Bracklesham Bay Live Cam">
@@ -824,6 +825,50 @@ window.selectSpot = function selectSpot(name) {
 }
 
 loadData();
+
+// ── Webcam auto-fullscreen on landscape rotation ──────────────────────────
+(function() {
+  function isInViewport(el) {
+    const r = el.getBoundingClientRect();
+    return r.top < window.innerHeight && r.bottom > 0;
+  }
+
+  function enterFullscreen(el) {
+    const fn = el.requestFullscreen || el.webkitRequestFullscreen || el.mozRequestFullScreen || el.msRequestFullscreen;
+    if (fn) fn.call(el);
+  }
+
+  function exitFullscreen() {
+    const fn = document.exitFullscreen || document.webkitExitFullscreen || document.mozCancelFullScreen || document.msExitFullscreen;
+    if (fn) fn.call(document);
+  }
+
+  function isLandscape() {
+    if (screen.orientation) return screen.orientation.type.startsWith('landscape');
+    return window.innerWidth > window.innerHeight;
+  }
+
+  function handleOrientationChange() {
+    const iframe = document.getElementById('cam-iframe');
+    if (!iframe) return;
+    const live = document.getElementById('bracklesham-live');
+    if (!live || live.style.display === 'none') return;
+
+    if (isLandscape() && isInViewport(iframe)) {
+      // Small delay lets the browser finish rotating before requesting fullscreen
+      setTimeout(() => enterFullscreen(iframe), 200);
+    } else {
+      const fsEl = document.fullscreenElement || document.webkitFullscreenElement;
+      if (fsEl) exitFullscreen();
+    }
+  }
+
+  if (screen.orientation) {
+    screen.orientation.addEventListener('change', handleOrientationChange);
+  } else {
+    window.addEventListener('orientationchange', handleOrientationChange);
+  }
+})();
 </script>
 </body>
 </html>
