@@ -777,7 +777,7 @@ async function loadData(){
     const [mr,wr,sr,tr]=await Promise.all([
       fetch(`https://marine-api.open-meteo.com/v1/marine?latitude=${currentSpot.lat}&longitude=${currentSpot.lon}&hourly=wave_height,wave_period,swell_wave_period,swell_wave_height,swell_wave_direction,wave_direction&timezone=Europe%2FLondon&forecast_days=3&models=meteofrance_wave`),
       // UKMO seamless: UKV 2km for days 1-2, global 10km for day 3 — built for UK
-      fetch(`https://api.open-meteo.com/v1/ukmo?latitude=${currentSpot.lat}&longitude=${currentSpot.lon}&hourly=windspeed_10m,winddirection_10m&timezone=Europe%2FLondon&forecast_days=3&models=ukmo_seamless`),
+      fetch(`https://api.open-meteo.com/v1/forecast?latitude=${currentSpot.lat}&longitude=${currentSpot.lon}&hourly=windspeed_10m,winddirection_10m&timezone=Europe%2FLondon&forecast_days=3&models=ukmo_seamless`),
       fetch(`https://marine-api.open-meteo.com/v1/marine?latitude=${currentSpot.lat}&longitude=${currentSpot.lon}&hourly=sea_surface_temperature&timezone=Europe%2FLondon&forecast_days=3`),
       fetch(`https://marine-api.open-meteo.com/v1/marine?latitude=${currentSpot.lat}&longitude=${currentSpot.lon}&hourly=sea_level_height_msl&timezone=Europe%2FLondon&forecast_days=3`)
     ]);
