@@ -671,7 +671,8 @@ async function renderDay() {
     const useP   = buoyP   != null ? buoyP   : (wSwell[h] ?? wP[h]);
     const useDir = buoyDir != null ? buoyDir : (wSwellDirArr[h] ?? wD[h]);
     const useT   = buoyT   != null ? buoyT   : seaT[h];
-    const dataSource = buoyLabel ? `Buoy · ${buoyLabel}` : 'MFWAM · MeteoFrance';
+    const windSource = wArome ? 'AROME 1.25km' : 'ICON best-match';
+    const dataSource = buoyLabel ? `Buoy · ${buoyLabel}` : `MFWAM · ${windSource} wind`;
 
     // --- Now card + buoy-corrected session card (today only) ---
     if (renderDay_ === 0) {
@@ -774,15 +775,31 @@ async function loadData(){
   document.getElementById('loading').classList.remove('gone');
   document.getElementById('app').style.display='none';
   try {
-    const [mr,wr,sr,tr]=await Promise.all([
+    const [mr,wrArome,wrFallback,sr,tr]=await Promise.all([
       fetch(`https://marine-api.open-meteo.com/v1/marine?latitude=${currentSpot.lat}&longitude=${currentSpot.lon}&hourly=wave_height,wave_period,swell_wave_period,swell_wave_height,swell_wave_direction,wave_direction&timezone=Europe%2FLondon&forecast_days=3&models=meteofrance_wave`),
+      // AROME: 1.25km high-res wind, covers ~42hrs
+      fetch(`https://api.open-meteo.com/v1/meteofrance?latitude=${currentSpot.lat}&longitude=${currentSpot.lon}&hourly=windspeed_10m,winddirection_10m&timezone=Europe%2FLondon&forecast_days=2&models=arome_france`),
+      // Best-match fallback for full 3-day coverage
       fetch(`https://api.open-meteo.com/v1/forecast?latitude=${currentSpot.lat}&longitude=${currentSpot.lon}&hourly=windspeed_10m,winddirection_10m&timezone=Europe%2FLondon&forecast_days=3`),
       fetch(`https://marine-api.open-meteo.com/v1/marine?latitude=${currentSpot.lat}&longitude=${currentSpot.lon}&hourly=sea_surface_temperature&timezone=Europe%2FLondon&forecast_days=3`),
       fetch(`https://marine-api.open-meteo.com/v1/marine?latitude=${currentSpot.lat}&longitude=${currentSpot.lon}&hourly=sea_level_height_msl&timezone=Europe%2FLondon&forecast_days=3`)
     ]);
     if (!mr.ok) { const e=await mr.json(); throw new Error('Wave API: '+(e.reason||mr.status)); }
-    if (!wr.ok) { const e=await wr.json(); throw new Error('Wind API: '+(e.reason||wr.status)); }
-    const m=await mr.json(), w=await wr.json(), s=sr.ok ? await sr.json() : null, t=tr.ok ? await tr.json() : null;
+    if (!wrFallback.ok) { const e=await wrFallback.json(); throw new Error('Wind API: '+(e.reason||wrFallback.status)); }
+    const m=await mr.json();
+    const wFallback=await wrFallback.json();
+    const wArome = wrArome.ok ? await wrArome.json() : null;
+    const s=sr.ok ? await sr.json() : null, t=tr.ok ? await tr.json() : null;
+
+    // Merge wind: AROME where available (non-null), best-match fallback elsewhere
+    const aromeSpeed = wArome?.hourly?.windspeed_10m ?? [];
+    const aromeDir   = wArome?.hourly?.winddirection_10m ?? [];
+    const fallSpeed  = wFallback.hourly.windspeed_10m;
+    const fallDir    = wFallback.hourly.winddirection_10m;
+    const mergedSpeed = fallSpeed.map((v,i) => aromeSpeed[i] != null ? aromeSpeed[i] : v);
+    const mergedDir   = fallDir.map((v,i)   => aromeDir[i]   != null ? aromeDir[i]   : v);
+    const w = { hourly: { windspeed_10m: mergedSpeed, winddirection_10m: mergedDir } };
+
     cachedData = { m, w, sst: s, tide: t, now: new Date() };
     renderDay();
   } catch(e) {
