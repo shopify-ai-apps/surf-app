@@ -670,27 +670,55 @@ async function renderDay() {
     const useT   = buoyT   != null ? buoyT   : seaT[h];
     const dataSource = buoyLabel ? `Buoy · ${buoyLabel}` : 'MFWAM · MeteoFrance';
 
-    // --- Now card (score/stars — today only, card is hidden on future days) ---
+    // --- Now card + buoy-corrected session card (today only) ---
     if (renderDay_ === 0) {
-      // Use the current session's score (AM before noon, PM from noon) rather than
-      // a single-hour rate() — keeps now score consistent with session cards below
       const inAM = todayH < 12;
-      const sessionScore = inAM ? amS : pmS;
-      const sessionIdxs  = inAM ? amI  : pmI;
+      const sessionIdxs = inAM ? amI : pmI;
 
-      // Derive reasons from the best hour in the current session
-      const bestIdx = sessionIdxs.length
-        ? sessionIdxs.reduce((best, i) =>
-            rate(aWH[i], wSwell[i]??wP[i], wSwellDirArr[i]??wD[i], wS[i], wDir[i]).score >
-            rate(aWH[best], wSwell[best]??wP[best], wSwellDirArr[best]??wD[best], wS[best], wDir[best]).score
-              ? i : best
-          , sessionIdxs[0])
-        : h;
-      const {reasons} = rate(aWH[bestIdx], wSwell[bestIdx]??wP[bestIdx], wSwellDirArr[bestIdx]??wD[bestIdx], wS[bestIdx], wDir[bestIdx]);
+      // If buoy data is available, use it for the current hour's rate().
+      // It's real measured data — override the model for score AND reasons.
+      // Wind stays model-derived (buoy doesn't measure wind).
+      let nowScore, reasons;
+      if (buoyH != null) {
+        ({ score: nowScore, reasons } = rate(useH, useP, useDir, wS[h], wDir[h]));
+        nowScore = to5(nowScore);
 
-      const nd = to5(sessionScore); set('rnum',nd); setc('rnum',sc(nd));
-      seth('rstars', stars(nd, cl(nd), 'star'));
-      set('rdesc', desc(nd));
+        // Also update the current session card (AM or PM) to reflect buoy data.
+        // Build a corrected wave-height and period array: substitute buoy values
+        // at index h, keep model values for the rest of the session.
+        const corrWH  = aWH.slice();
+        const corrP   = wSwell.map((v,i) => v ?? wP[i]);
+        const corrDir = wSwellDirArr.map((v,i) => v ?? wD[i]);
+        corrWH[h]  = useH;
+        corrP[h]   = useP;
+        corrDir[h] = useDir;
+        const corrScore = to5(bestScore(sessionIdxs, corrWH, corrP, corrDir, wS, wDir));
+        if (inAM) {
+          set('ams', corrScore); setc('ams', sc(corrScore));
+          seth('amst', stars(corrScore, cl(corrScore), 'astar'));
+          set('amd', desc(corrScore));
+        } else {
+          set('pms', corrScore); setc('pms', sc(corrScore));
+          seth('pmst', stars(corrScore, cl(corrScore), 'astar'));
+          set('pmd', desc(corrScore));
+        }
+      } else {
+        // No buoy — use session bestScore and derive reasons from best model hour
+        const sessionScore = inAM ? amS : pmS;
+        nowScore = to5(sessionScore);
+        const bestIdx = sessionIdxs.length
+          ? sessionIdxs.reduce((best, i) =>
+              rate(aWH[i], wSwell[i]??wP[i], wSwellDirArr[i]??wD[i], wS[i], wDir[i]).score >
+              rate(aWH[best], wSwell[best]??wP[best], wSwellDirArr[best]??wD[best], wS[best], wDir[best]).score
+                ? i : best
+            , sessionIdxs[0])
+          : h;
+        ({ reasons } = rate(aWH[bestIdx], wSwell[bestIdx]??wP[bestIdx], wSwellDirArr[bestIdx]??wD[bestIdx], wS[bestIdx], wDir[bestIdx]));
+      }
+
+      set('rnum', nowScore); setc('rnum', sc(nowScore));
+      seth('rstars', stars(nowScore, cl(nowScore), 'star'));
+      set('rdesc', desc(nowScore));
       set('rreason', reasons.length ? reasons.join(' · ') : 'Conditions looking good');
     }
 
