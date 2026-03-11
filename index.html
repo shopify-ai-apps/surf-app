@@ -358,7 +358,9 @@ function rate(wH,wP,sD,wS,wD){
   else if(wH>2.5&&wH<=3.5)  {s+=1;r.push('big and closing out');}
   else if(wH>=0.4&&wH<0.5)  {s+=1;r.push('very small');}
   else                        {r.push('too big');}
-  if(wP>=12)      {s+=3;}
+  // Period: max bonus capped at +2 — long-period groundswell at small size
+  // is still only marginal at a sheltered beach break like Bracklesham
+  if(wP>=12)      {s+=2;}
   else if(wP>=10) {s+=2;}
   else if(wP>=8)  {s+=1;}
   else if(wP>=6)  {r.push('short period windswell');}
@@ -367,9 +369,10 @@ function rate(wH,wP,sD,wS,wD){
   const off=offshore(wD);
   if(off&&wS<15)       {s+=2;}
   else if(off&&wS<30)  {s+=1;}
-  else if(!off&&wS<8)  {}
-  else if(!off&&wS<20) {s-=1;r.push('onshore wind');}
-  else                  {s-=2;r.push('strong onshore — choppy');}
+  else if(!off&&wS<5)  {}                        // near-calm — negligible onshore
+  else if(!off&&wS<12) {s-=1;r.push('onshore wind');}
+  else if(!off&&wS<20) {s-=2;r.push('onshore wind');}
+  else                  {s-=3;r.push('strong onshore — choppy');}
   return {score:Math.max(1,Math.min(10,Math.round(s))),reasons:r};
 }
 
