@@ -352,7 +352,8 @@ function goodSwell(sd){return adiff(sd,currentSpot.swell)<65}
 function rate(wH,wP,sD,wS,wD){
   if(wH<0.4) return {score:1,reasons:['too small to surf']};
   let s=0; const r=[];
-  if(wH>=0.8&&wH<=1.8)      {s+=4;}
+  if(wH>=1.2&&wH<=1.8)      {s+=4;}
+  else if(wH>=0.8&&wH<1.2)  {s+=3;r.push('small but punchy');}
   else if(wH>1.8&&wH<=2.5)  {s+=3;r.push('solid size');}
   else if(wH>=0.5&&wH<0.8)  {s+=2;r.push('small but surfable');}
   else if(wH>2.5&&wH<=3.5)  {s+=1;r.push('big and closing out');}
