@@ -279,11 +279,17 @@ header{padding:32px 24px 20px;border-bottom:1px solid #ffffff08;animation:fu .4s
           allowfullscreen
           loading="lazy"
           scrolling="no"
-          title="Bracklesham Bay Live Cam">
+          title="Live Cam">
         </iframe>
+        <a id="cam-link-btn" href="" target="_blank" rel="noopener"
+          style="display:none;width:100%;min-height:220px;aspect-ratio:16/9;align-items:center;justify-content:center;flex-direction:column;gap:10px;text-decoration:none;color:#fff">
+          <div style="font-size:32px">📷</div>
+          <div style="font-family:'DM Mono',monospace;font-size:13px;letter-spacing:0.05em">View Live Cam →</div>
+          <div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--dim)">Opens in new tab</div>
+        </a>
       </div>
       <div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--dim);margin-top:8px;text-align:right">
-        Surfline HD Cam · East Wittering
+        Live Cam
       </div>
     </div>
 
@@ -304,13 +310,14 @@ header{padding:32px 24px 20px;border-bottom:1px solid #ffffff08;animation:fu .4s
 <script>
 const SPOTS = [
   // South Coast
-  { name:'Bracklesham Bay', atten:1.0, buoy:'Bracklesham Bay', region:'South Coast',    lat:50.7756, lon:-0.8831, swell:225, offshore:45,  tideRef:'Selsey Bill',  bestTide:'Low–Mid',    type:'Beach break',  level:'All levels',   hazards:'Groynes, rips', cam:'5a21a1ba096c27001ac4f190' },
+  { name:'Bracklesham Bay', atten:1.0, buoy:'Bracklesham Bay', region:'South Coast',    lat:50.7756, lon:-0.8831, swell:225, offshore:45,  tideRef:'Selsey Bill',  bestTide:'Low–Mid',    type:'Beach break',  level:'All levels',   hazards:'Groynes, rips', cam:'https://embed.cdn-surfline.com/cam/5a21a1ba096c27001ac4f190.html' },
   { name:'Boscombe', atten:1.0, buoy:'Boscombe', region:'South Coast',    lat:50.7192, lon:-1.8372, swell:225, offshore:0,   tideRef:'Bournemouth',   bestTide:'All tides',  type:'Beach break',  level:'All levels',   hazards:'Pier, crowds' },
   { name:'Chesil Beach', atten:1.0, buoy:'Chesil', region:'South Coast',    lat:50.6167, lon:-2.5500, swell:180, offshore:0,   tideRef:'Portland Bill',   bestTide:'Mid',        type:'Shore break',  level:'Experienced',  hazards:'Shingle, dumping' },
   // South West
-  { name:'Croyde', atten:1.0, buoy:'Bideford Bay', region:'North Devon',    lat:51.1167, lon:-4.2333, swell:280, offshore:90,  tideRef:'Ilfracombe',  bestTide:'Mid',        type:'Beach break',  level:'All levels',   hazards:'Rips, rocks', cam:'5942121bd897669f0ca03fba' },
+  { name:'Croyde', atten:1.0, buoy:'Bideford Bay', region:'North Devon',    lat:51.1167, lon:-4.2333, swell:280, offshore:90,  tideRef:'Ilfracombe',  bestTide:'Mid',        type:'Beach break',  level:'All levels',   hazards:'Rips, rocks', cam:'https://embed.cdn-surfline.com/cams/5a21a1659c7bba001b25697b/1c157e37827afacf94e09f9ca0a73f3b1e124df4' },
   { name:'Saunton Sands', atten:1.0, buoy:'Bideford Bay', region:'North Devon',    lat:51.1000, lon:-4.2167, swell:280, offshore:90,  tideRef:'Ilfracombe',  bestTide:'Low–Mid',    type:'Beach break',  level:'Beginner',     hazards:'Rips' },
-  { name:'Fistral', atten:1.0, buoy:'Perranporth', region:'Cornwall',       lat:50.4167, lon:-5.1000, swell:270, offshore:90,  tideRef:'Newquay',  bestTide:'Mid',        type:'Beach break',  level:'All levels',   hazards:'Rips, crowds', cam:'58349e0a3421b20545c4b562' },
+  { name:'Woolacombe', atten:1.0, buoy:'Bideford Bay', region:'North Devon',    lat:51.1667, lon:-4.2000, swell:280, offshore:90,  tideRef:'Ilfracombe',  bestTide:'Mid',        type:'Beach break',  level:'All levels',   hazards:'Rips' },
+  { name:'Fistral', atten:1.0, buoy:'Perranporth', region:'Cornwall',       lat:50.4167, lon:-5.1000, swell:270, offshore:90,  tideRef:'Newquay',  bestTide:'Mid',        type:'Beach break',  level:'All levels',   hazards:'Rips, crowds', camLink:'https://www.pentirehotelnewquay.co.uk/fistral-beach-webcam' },
   { name:'Watergate Bay', atten:1.0, buoy:'Perranporth', region:'Cornwall',       lat:50.4500, lon:-5.0333, swell:270, offshore:90,  tideRef:'Newquay',  bestTide:'All tides',  type:'Beach break',  level:'All levels',   hazards:'Rips' },
   { name:'Constantine Bay', atten:1.0, buoy:'Perranporth', region:'Cornwall',       lat:50.5333, lon:-5.0000, swell:270, offshore:135, tideRef:'Padstow', bestTide:'Mid',        type:'Beach break',  level:'Intermediate', hazards:'Rocks, rips' },
   { name:'Sennen Cove', atten:1.0, buoy:'Penzance', region:'Cornwall',       lat:50.0700, lon:-5.7000, swell:270, offshore:135, tideRef:"Land's End", bestTide:'Mid',        type:'Beach break',  level:'All levels',   hazards:'Rocks' },
@@ -636,10 +643,21 @@ async function renderDay() {
     const isBracklesham = renderSpot.name === 'Bracklesham Bay';
     const camSection = document.getElementById('spot-cam');
     if (renderSpot.cam) {
-      document.getElementById('cam-iframe').src = `https://embed.cdn-surfline.com/cam/${renderSpot.cam}.html`;
+      document.getElementById('cam-iframe').src = renderSpot.cam;
+      document.getElementById('cam-iframe').style.display = '';
+      document.getElementById('cam-link-btn').style.display = 'none';
+      camSection.style.display = '';
+    } else if (renderSpot.camLink) {
+      document.getElementById('cam-iframe').src = '';
+      document.getElementById('cam-iframe').style.display = 'none';
+      const btn = document.getElementById('cam-link-btn');
+      btn.href = renderSpot.camLink;
+      btn.style.display = 'flex';
       camSection.style.display = '';
     } else {
       document.getElementById('cam-iframe').src = '';
+      document.getElementById('cam-iframe').style.display = '';
+      document.getElementById('cam-link-btn').style.display = 'none';
       camSection.style.display = 'none';
     }
     if (isBracklesham) loadShoreReport();
