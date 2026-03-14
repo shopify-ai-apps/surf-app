@@ -11,3 +11,8 @@
   from = "/api/surfcheck"
   to = "/.netlify/functions/surfcheck"
   status = 200
+
+[[redirects]]
+  from = "/api/tides"
+  to = "/.netlify/functions/tides"
+  status = 200
