@@ -728,16 +728,16 @@ async function renderDay() {
         corrWH[h]  = useH;
         corrP[h]   = useP;
         corrDir[h] = useDir;
-        const corrScore = to5(bestScore(sessionIdxs, corrWH, corrP, corrDir, wS, wDir));
-        if (inAM) {
-          set('ams', corrScore); setc('ams', sc(corrScore));
-          seth('amst', stars(corrScore, cl(corrScore), 'astar'));
-          set('amd', desc(corrScore));
-        } else {
-          set('pms', corrScore); setc('pms', sc(corrScore));
-          seth('pmst', stars(corrScore, cl(corrScore), 'astar'));
-          set('pmd', desc(corrScore));
-        }
+        // Correct both session tiles with buoy data
+        const corrAmScore = to5(bestScore(amI, corrWH, corrP, corrDir, wS, wDir));
+        set('ams', corrAmScore); setc('ams', sc(corrAmScore));
+        seth('amst', stars(corrAmScore, cl(corrAmScore), 'astar'));
+        set('amd', desc(corrAmScore));
+
+        const corrPmScore = to5(bestScore(pmI, corrWH, corrP, corrDir, wS, wDir));
+        set('pms', corrPmScore); setc('pms', sc(corrPmScore));
+        seth('pmst', stars(corrPmScore, cl(corrPmScore), 'astar'));
+        set('pmd', desc(corrPmScore));
       } else {
         // No buoy — use session bestScore and derive reasons from best model hour
         const sessionScore = inAM ? amS : pmS;
