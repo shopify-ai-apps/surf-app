@@ -312,26 +312,26 @@ header{padding:32px 24px 20px;border-bottom:1px solid #ffffff08;animation:fu .4s
 <script>
 const SPOTS = [
   // South Coast
-  { name:'Bracklesham Bay', atten:1.0, buoy:'Bracklesham Bay', region:'South Coast',    lat:50.7756, lon:-0.8831, swell:225, offshore:45,  tideRef:'Selsey Bill',  bestTide:'Low–Mid',    type:'Beach break',  level:'All levels',   hazards:'Groynes, rips', cam:'https://embed.cdn-surfline.com/cam/5a21a1ba096c27001ac4f190.html' },
-  { name:'Boscombe', atten:1.0, buoy:'Boscombe', region:'South Coast',    lat:50.7192, lon:-1.8372, swell:225, offshore:0,   tideRef:'Bournemouth',   bestTide:'All tides',  type:'Beach break',  level:'All levels',   hazards:'Pier, crowds' },
-  { name:'Chesil Beach', atten:1.0, buoy:'Chesil', region:'South Coast',    lat:50.6167, lon:-2.5500, swell:180, offshore:0,   tideRef:'Portland Bill',   bestTide:'Mid',        type:'Shore break',  level:'Experienced',  hazards:'Shingle, dumping' },
+  { name:'Bracklesham Bay', atten:1.0, buoy:'Bracklesham Bay', region:'South Coast',    lat:50.7756, lon:-0.8831, swell:225, offshore:45,  tideRef:'Selsey Bill',  tideStation:'0069',  bestTide:'Low–Mid',    type:'Beach break',  level:'All levels',   hazards:'Groynes, rips', cam:'https://embed.cdn-surfline.com/cam/5a21a1ba096c27001ac4f190.html' },
+  { name:'Boscombe', atten:1.0, buoy:'Boscombe', region:'South Coast',    lat:50.7192, lon:-1.8372, swell:225, offshore:0,   tideRef:'Bournemouth',  tideStation:'0037',   bestTide:'All tides',  type:'Beach break',  level:'All levels',   hazards:'Pier, crowds' },
+  { name:'Chesil Beach', atten:1.0, buoy:'Chesil', region:'South Coast',    lat:50.6167, lon:-2.5500, swell:180, offshore:0,   tideRef:'Portland Bill', tideStation:'0033',   bestTide:'Mid',        type:'Shore break',  level:'Experienced',  hazards:'Shingle, dumping' },
   // South West
-  { name:'Croyde', atten:1.0, buoy:'Bideford Bay', region:'North Devon',    lat:51.1167, lon:-4.2333, swell:280, offshore:90,  tideRef:'Ilfracombe',  bestTide:'Mid',        type:'Beach break',  level:'All levels',   hazards:'Rips, rocks', cam:'https://embed.cdn-surfline.com/cams/5a21a1659c7bba001b25697b/1c157e37827afacf94e09f9ca0a73f3b1e124df4' },
-  { name:'Saunton Sands', atten:1.0, buoy:'Bideford Bay', region:'North Devon',    lat:51.1000, lon:-4.2167, swell:280, offshore:90,  tideRef:'Ilfracombe',  bestTide:'Low–Mid',    type:'Beach break',  level:'Beginner',     hazards:'Rips' },
-  { name:'Woolacombe', atten:1.0, buoy:'Bideford Bay', region:'North Devon',    lat:51.1667, lon:-4.2000, swell:280, offshore:90,  tideRef:'Ilfracombe',  bestTide:'Mid',        type:'Beach break',  level:'All levels',   hazards:'Rips' },
-  { name:'Fistral', atten:1.0, buoy:'Perranporth', region:'Cornwall',       lat:50.4167, lon:-5.1000, swell:270, offshore:90,  tideRef:'Newquay',  bestTide:'Mid',        type:'Beach break',  level:'All levels',   hazards:'Rips, crowds', cam:'https://relay.ozolio.com/pub.api?cmd=iframe&oid=CID_UUEL0000164B&app_mode=control&allow_home=false&auto_show=false&allow_audio=false', camLink:'https://www.ozolio.com/explore/UUEL0000164B' },
-  { name:'Watergate Bay', atten:1.0, buoy:'Perranporth', region:'Cornwall',       lat:50.4500, lon:-5.0333, swell:270, offshore:90,  tideRef:'Newquay',  bestTide:'All tides',  type:'Beach break',  level:'All levels',   hazards:'Rips' },
-  { name:'Constantine Bay', atten:1.0, buoy:'Perranporth', region:'Cornwall',       lat:50.5333, lon:-5.0000, swell:270, offshore:135, tideRef:'Padstow', bestTide:'Mid',        type:'Beach break',  level:'Intermediate', hazards:'Rocks, rips' },
-  { name:'Sennen Cove', atten:1.0, buoy:'Penzance', region:'Cornwall',       lat:50.0700, lon:-5.7000, swell:270, offshore:135, tideRef:"Land's End", bestTide:'Mid',        type:'Beach break',  level:'All levels',   hazards:'Rocks' },
-  { name:'Porthmeor', atten:1.0, buoy:'Penzance', region:'Cornwall',       lat:50.2167, lon:-5.4833, swell:270, offshore:135, tideRef:'St Ives', bestTide:'All tides',  type:'Beach break',  level:'All levels',   hazards:'Crowds' },
-  { name:'Newgale', atten:1.0,          region:'Pembrokeshire',  lat:51.8500, lon:-5.0833, swell:270, offshore:135, tideRef:'Milford Haven', bestTide:'Low–Mid',    type:'Beach break',  level:'All levels',   hazards:'Rips' },
-  { name:'Whitesands Bay', atten:1.0,   region:'Pembrokeshire',  lat:51.8833, lon:-5.2667, swell:270, offshore:90,  tideRef:'St Davids',  bestTide:'Low–Mid',    type:'Beach break',  level:'All levels',   hazards:'Rocks, rips' },
+  { name:'Croyde', atten:1.0, buoy:'Bideford Bay', region:'North Devon',    lat:51.1167, lon:-4.2333, swell:280, offshore:90,  tideRef:'Ilfracombe',  tideStation:'0535',    bestTide:'Mid',        type:'Beach break',  level:'All levels',   hazards:'Rips, rocks', cam:'https://embed.cdn-surfline.com/cams/5a21a1659c7bba001b25697b/1c157e37827afacf94e09f9ca0a73f3b1e124df4' },
+  { name:'Saunton Sands', atten:1.0, buoy:'Bideford Bay', region:'North Devon',    lat:51.1000, lon:-4.2167, swell:280, offshore:90,  tideRef:'Ilfracombe',  tideStation:'0535',    bestTide:'Low–Mid',    type:'Beach break',  level:'Beginner',     hazards:'Rips' },
+  { name:'Woolacombe', atten:1.0, buoy:'Bideford Bay', region:'North Devon',    lat:51.1667, lon:-4.2000, swell:280, offshore:90,  tideRef:'Ilfracombe',  tideStation:'0535',    bestTide:'Mid',        type:'Beach break',  level:'All levels',   hazards:'Rips' },
+  { name:'Fistral', atten:1.0, buoy:'Perranporth', region:'Cornwall',       lat:50.4167, lon:-5.1000, swell:270, offshore:90,  tideRef:'Newquay',  tideStation:'0546',    bestTide:'Mid',        type:'Beach break',  level:'All levels',   hazards:'Rips, crowds', cam:'https://relay.ozolio.com/pub.api?cmd=iframe&oid=CID_UUEL0000164B&app_mode=control&allow_home=false&auto_show=false&allow_audio=false', camLink:'https://www.ozolio.com/explore/UUEL0000164B' },
+  { name:'Watergate Bay', atten:1.0, buoy:'Perranporth', region:'Cornwall',       lat:50.4500, lon:-5.0333, swell:270, offshore:90,  tideRef:'Newquay',  tideStation:'0546',    bestTide:'All tides',  type:'Beach break',  level:'All levels',   hazards:'Rips' },
+  { name:'Constantine Bay', atten:1.0, buoy:'Perranporth', region:'Cornwall',       lat:50.5333, lon:-5.0000, swell:270, offshore:135, tideRef:'Padstow',      tideStation:'0545', bestTide:'Mid',        type:'Beach break',  level:'Intermediate', hazards:'Rocks, rips' },
+  { name:'Sennen Cove', atten:1.0, buoy:'Penzance', region:'Cornwall',       lat:50.0700, lon:-5.7000, swell:270, offshore:135, tideRef:"Land's End",  tideStation:'0547', bestTide:'Mid',        type:'Beach break',  level:'All levels',   hazards:'Rocks' },
+  { name:'Porthmeor', atten:1.0, buoy:'Penzance', region:'Cornwall',       lat:50.2167, lon:-5.4833, swell:270, offshore:135, tideRef:'St Ives',      tideStation:'0547', bestTide:'All tides',  type:'Beach break',  level:'All levels',   hazards:'Crowds' },
+  { name:'Newgale', atten:1.0,          region:'Pembrokeshire',  lat:51.8500, lon:-5.0833, swell:270, offshore:135, tideRef:'Milford Haven', tideStation:'0496', bestTide:'Low–Mid',    type:'Beach break',  level:'All levels',   hazards:'Rips' },
+  { name:'Whitesands Bay', atten:1.0,   region:'Pembrokeshire',  lat:51.8833, lon:-5.2667, swell:270, offshore:90,  tideRef:'St Davids',    tideStation:'0496',  bestTide:'Low–Mid',    type:'Beach break',  level:'All levels',   hazards:'Rocks, rips' },
   // Yorkshire & North East
-  { name:'Scarborough', atten:1.0, buoy:'Hornsea', region:'Yorkshire',      lat:54.2777, lon:-0.3938, swell:45,  offshore:270, tideRef:'Scarborough', bestTide:'Low–Mid',    type:'Beach break',  level:'All levels',   hazards:'Groynes' },
-  { name:'Cayton Bay', atten:1.0, buoy:'Hornsea', region:'Yorkshire',      lat:54.2333, lon:-0.3667, swell:45,  offshore:225, tideRef:'Scarborough', bestTide:'Low',        type:'Beach/reef',   level:'Intermediate', hazards:'Rocks, rips' },
+  { name:'Scarborough', atten:1.0, buoy:'Hornsea', region:'Yorkshire',      lat:54.2777, lon:-0.3938, swell:45,  offshore:270, tideRef:'Scarborough',  tideStation:'0183',   bestTide:'Low–Mid',    type:'Beach break',  level:'All levels',   hazards:'Groynes' },
+  { name:'Cayton Bay', atten:1.0, buoy:'Hornsea', region:'Yorkshire',      lat:54.2333, lon:-0.3667, swell:45,  offshore:225, tideRef:'Scarborough',  tideStation:'0183',   bestTide:'Low',        type:'Beach/reef',   level:'Intermediate', hazards:'Rocks, rips' },
   // Scotland
-  { name:'Thurso East', atten:1.0,      region:'Scotland',       lat:58.5936, lon:-3.5085, swell:45,  offshore:180, tideRef:'Thurso', bestTide:'Mid',        type:'Reef break',   level:'Experienced',  hazards:'Sharp reef' },
-  { name:'Pease Bay', atten:1.0,        region:'Scotland',       lat:55.9167, lon:-2.3833, swell:45,  offshore:270, tideRef:'Dunbar', bestTide:'All tides',  type:'Beach break',  level:'All levels',   hazards:'Rips' },
+  { name:'Thurso East', atten:1.0,      region:'Scotland',       lat:58.5936, lon:-3.5085, swell:45,  offshore:180, tideRef:'Thurso',       tideStation:'0267', bestTide:'Mid',        type:'Reef break',   level:'Experienced',  hazards:'Sharp reef' },
+  { name:'Pease Bay', atten:1.0,        region:'Scotland',       lat:55.9167, lon:-2.3833, swell:45,  offshore:270, tideRef:'Dunbar',       tideStation:'0222', bestTide:'All tides',  type:'Beach break',  level:'All levels',   hazards:'Rips' },
   // Ireland
   { name:'Bundoran', atten:1.0,         region:'Ireland',        lat:54.4833, lon:-8.2833, swell:270, offshore:90,  tideRef:'Bundoran',  bestTide:'Mid',        type:'Beach/reef',   level:'All levels',   hazards:'Rocks, rips' },
   { name:'Lahinch', atten:1.0,          region:'Ireland',        lat:52.9333, lon:-9.3500, swell:270, offshore:90,  tideRef:'Galway',  bestTide:'Mid',        type:'Beach break',  level:'All levels',   hazards:'Rips' },
@@ -501,7 +501,7 @@ async function renderDay() {
   const myToken = ++renderToken;
   const renderSpot = currentSpot; // snapshot — buoy await must not use stale currentSpot
   const renderDay_ = selectedDay;
-  const {m, w, sst, tide, now} = cachedData;
+  const {m, w, sst, tide, tidalEvents, now} = cachedData;
   try {
     const todayH = now.getHours();
     const dayOffset = renderDay_ * 24;
@@ -581,20 +581,45 @@ async function renderDay() {
     const tCur = tH[h] ?? tH[Math.max(0,h-1)];
     set('tc', tCur!=null ? tCur.toFixed(1)+'m' : '—');
     set('tst', tH[h]>tH[Math.max(0,h-1)] ? 'Rising ↑' : 'Falling ↓');
-    let nHigh=null, nLow=null;
-    for (let i=h+1; i<tH.length-1; i++) {
-      const tp=tH[i-1], tc=tH[i], tn=tH[i+1];
-      if (!nHigh && tc>tp && tc>tn) nHigh=times[i];
-      if (!nLow  && tc<tp && tc<tn) nLow=times[i];
-      if (nHigh && nLow) break;
+    // Tide times: use ADMIRALTY tidal events if available, else fall back to peak-detection
+    const tidalEvents = cachedData.tidalEvents;
+    if (tidalEvents && Array.isArray(tidalEvents) && tidalEvents.length) {
+      // Filter to upcoming events from now, convert UTC DateTime strings to local time
+      const nowMs = Date.now();
+      const upcoming = tidalEvents
+        .map(ev => ({
+          isHigh: ev.EventType === 'HighWater',
+          dt: new Date(ev.DateTime),
+          height: ev.Height != null ? ev.Height.toFixed(1)+'m' : null
+        }))
+        .filter(ev => ev.dt.getTime() > nowMs - 30*60*1000) // include events up to 30min ago
+        .sort((a,b) => a.dt - b.dt);
+      const ev1 = upcoming[0] || null;
+      const ev2 = upcoming[1] || null;
+      const fmtEv = dt => dt.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+      set('next1-label', ev1 ? (ev1.isHigh ? 'High Water' : 'Low Water') : 'Next');
+      set('next1-val',   ev1 ? fmtEv(ev1.dt) : '—');
+      set('next1-sub',   ev1 && ev1.height ? ev1.height : (ev1 ? (ev1.isHigh ? 'high tide' : 'low tide') : '—'));
+      set('next2-label', ev2 ? (ev2.isHigh ? 'High Water' : 'Low Water') : 'After');
+      set('next2-val',   ev2 ? fmtEv(ev2.dt) : '—');
+      set('next2-sub',   ev2 && ev2.height ? ev2.height : (ev2 ? (ev2.isHigh ? 'high tide' : 'low tide') : '—'));
+    } else {
+      // Fallback: peak-detection on Open-Meteo hourly sea level
+      let nHigh=null, nLow=null;
+      for (let i=h+1; i<tH.length-1; i++) {
+        const tp=tH[i-1], tc=tH[i], tn=tH[i+1];
+        if (!nHigh && tc>tp && tc>tn) nHigh=times[i];
+        if (!nLow  && tc<tp && tc<tn) nLow=times[i];
+        if (nHigh && nLow) break;
+      }
+      const highFirst = nHigh && (!nLow || nHigh <= nLow);
+      set('next1-label', highFirst ? 'High Water' : 'Low Water');
+      set('next1-val',   highFirst ? (nHigh?fmt(nHigh):'—') : (nLow?fmt(nLow):'—'));
+      set('next1-sub',   highFirst ? 'high tide' : 'low tide');
+      set('next2-label', highFirst ? 'Low Water' : 'High Water');
+      set('next2-val',   highFirst ? (nLow?fmt(nLow):'—') : (nHigh?fmt(nHigh):'—'));
+      set('next2-sub',   highFirst ? 'low tide' : 'high tide');
     }
-    const highFirst = nHigh && (!nLow || nHigh <= nLow);
-    set('next1-label', highFirst ? 'Next High' : 'Next Low');
-    set('next1-val',   highFirst ? (nHigh?fmt(nHigh):'—') : (nLow?fmt(nLow):'—'));
-    set('next1-sub',   highFirst ? 'high tide' : 'low tide');
-    set('next2-label', highFirst ? 'Next Low' : 'Next High');
-    set('next2-val',   highFirst ? (nLow?fmt(nLow):'—') : (nHigh?fmt(nHigh):'—'));
-    set('next2-sub',   highFirst ? 'low tide' : 'high tide');
 
     // --- Forecast strip ---
     const fStart=dayOffset+6, fEnd=dayOffset+21;
@@ -811,18 +836,23 @@ async function loadData(){
   document.getElementById('loading').classList.remove('gone');
   document.getElementById('app').style.display='none';
   try {
-    const [mr,wr,sr,tr]=await Promise.all([
+    const tidalStationId = currentSpot.tideStation;
+    const [mr,wr,sr,tr,evr]=await Promise.all([
       fetch(`https://marine-api.open-meteo.com/v1/marine?latitude=${currentSpot.lat}&longitude=${currentSpot.lon}&hourly=wave_height,wave_period,swell_wave_period,swell_wave_height,swell_wave_direction,wave_direction&timezone=Europe%2FLondon&forecast_days=3&models=meteofrance_wave`),
       // UKMO seamless: UKV 2km for days 1-2, global 10km for day 3 — built for UK
       fetch(`https://api.open-meteo.com/v1/forecast?latitude=${currentSpot.lat}&longitude=${currentSpot.lon}&hourly=windspeed_10m,winddirection_10m&timezone=Europe%2FLondon&forecast_days=3&models=ukmo_seamless`),
       fetch(`https://marine-api.open-meteo.com/v1/marine?latitude=${currentSpot.lat}&longitude=${currentSpot.lon}&hourly=sea_surface_temperature&timezone=Europe%2FLondon&forecast_days=3`),
-      fetch(`https://marine-api.open-meteo.com/v1/marine?latitude=${currentSpot.lat}&longitude=${currentSpot.lon}&hourly=sea_level_height_msl&timezone=Europe%2FLondon&forecast_days=3`)
+      fetch(`https://marine-api.open-meteo.com/v1/marine?latitude=${currentSpot.lat}&longitude=${currentSpot.lon}&hourly=sea_level_height_msl&timezone=Europe%2FLondon&forecast_days=3`),
+      tidalStationId
+        ? fetch(`/api/tides?station=${encodeURIComponent(tidalStationId)}`)
+        : Promise.resolve(null)
     ]);
     if (!mr.ok) { const e=await mr.json(); throw new Error('Wave API: '+(e.reason||mr.status)); }
     if (!wr.ok) { const e=await wr.json(); throw new Error('Wind API: '+(e.reason||wr.status)); }
     const m=await mr.json(), w=await wr.json(), s=sr.ok ? await sr.json() : null, t=tr.ok ? await tr.json() : null;
+    const tidalEvents = (evr && evr.ok) ? await evr.json() : null;
 
-    cachedData = { m, w, sst: s, tide: t, now: new Date() };
+    cachedData = { m, w, sst: s, tide: t, tidalEvents, now: new Date() };
     renderDay();
   } catch(e) {
     console.error(e);
