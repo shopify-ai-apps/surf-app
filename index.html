@@ -359,13 +359,12 @@ function goodSwell(sd){return adiff(sd,currentSpot.swell)<65}
 function rate(wH,wP,sD,wS,wD){
   if(wH<0.4) return {score:1,reasons:['too small to surf']};
   let s=0; const r=[];
-  if(wH>=1.2&&wH<=1.8)      {s+=4;}
-  else if(wH>=0.8&&wH<1.2)  {s+=3;r.push('small but punchy');}
-  else if(wH>1.8&&wH<=2.5)  {s+=3;r.push('solid size');}
-  else if(wH>=0.5&&wH<0.8)  {s+=2;r.push('small but surfable');}
-  else if(wH>2.5&&wH<=3.5)  {s+=1;r.push('big and closing out');}
-  else if(wH>=0.4&&wH<0.5)  {s+=1;r.push('very small');}
-  else                        {r.push('too big');}
+  if(wH>=1.0&&wH<=1.8)      {s+=3;}
+  else if(wH>1.8&&wH<=2.5)  {s+=4;r.push('solid size');}
+  else if(wH>2.5&&wH<=3.5)  {s+=3;r.push('big — committing');}
+  else if(wH>=0.6&&wH<1.0)  {s+=1;r.push('small but punchy');}
+  else if(wH>=0.4&&wH<0.6)  {s+=0;r.push('very small');}
+  else                        {r.push('too big to score');}
   // Period: max bonus capped at +2 — long-period groundswell at small size
   // is still only marginal at a sheltered beach break like Bracklesham
   if(wP>=12)      {s+=2;}
