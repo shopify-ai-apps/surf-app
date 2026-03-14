@@ -728,13 +728,17 @@ async function renderDay() {
         corrWH[h]  = useH;
         corrP[h]   = useP;
         corrDir[h] = useDir;
-        // Correct both session tiles with buoy data
-        const corrAmScore = to5(bestScore(amI, corrWH, corrP, corrDir, wS, wDir));
+        // Correct both session tiles with buoy data.
+        // Active session uses nowScore as a floor — if we're scoring a 2 right now,
+        // the session tile shouldn't show lower than that.
+        const rawAmScore = to5(bestScore(amI, corrWH, corrP, corrDir, wS, wDir));
+        const rawPmScore = to5(bestScore(pmI, corrWH, corrP, corrDir, wS, wDir));
+        const corrAmScore = inAM ? Math.max(rawAmScore, nowScore) : rawAmScore;
+        const corrPmScore = inAM ? rawPmScore : Math.max(rawPmScore, nowScore);
         set('ams', corrAmScore); setc('ams', sc(corrAmScore));
         seth('amst', stars(corrAmScore, cl(corrAmScore), 'astar'));
         set('amd', desc(corrAmScore));
 
-        const corrPmScore = to5(bestScore(pmI, corrWH, corrP, corrDir, wS, wDir));
         set('pms', corrPmScore); setc('pms', sc(corrPmScore));
         seth('pmst', stars(corrPmScore, cl(corrPmScore), 'astar'));
         set('pmd', desc(corrPmScore));
