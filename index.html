@@ -523,7 +523,7 @@ async function renderDay() {
       ? wSwellRaw.map((v,i) => v ?? wP[i])
       : wP;
     const wSwellDirArr = (wSwellDir && wSwellDir.some(v=>v!=null)) ? wSwellDir : wD;
-    const wS   = w.hourly.windspeed_10m;
+    const wS   = w.hourly.windspeed_10m.map(v => v != null ? v * 0.621371 : v); // convert km/h → mph
     const wDir = w.hourly.winddirection_10m;
 
     const atten = renderSpot.atten ?? 1;
@@ -806,7 +806,7 @@ async function renderDay() {
         dispP>=10?'good':dispP>=7?'ok':'poor'));
       set('sd', compass(dispDir));
       seth('sdb', bdg(goodSwell(dispDir)?'Good angle':'Off-angle', goodSwell(dispDir)?'good':'ok'));
-      set('ws', cS!=null ? Math.round(cS*0.621371) : '—');
+      set('ws', cS!=null ? Math.round(cS) : '—');
       set('wdt', `mph from ${compass(cDir)}`);
       seth('wsb', bdg(cS<8?'Light':cS<20?'Moderate':'Strong', offshore(cDir)?'good':cS<10?'ok':'poor'));
       set('wt', dispT?.toFixed(1) ?? '—');
