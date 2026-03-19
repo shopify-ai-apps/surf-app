@@ -382,7 +382,9 @@ function rate(wH,wP,sD,wS,wD){
   else if(!off&&wS<12) {s-=1;r.push('onshore wind');}
   else if(!off&&wS<20) {s-=2;r.push('onshore wind');}
   else                  {s-=3;r.push('strong onshore — choppy');}
-  return {score:Math.max(1,Math.min(10,Math.round(s))),reasons:r};
+  // Cap raw score based on wave height — period/wind can't compensate for tiny waves
+  const heightCap = wH>=1.8 ? 10 : wH>=1.0 ? 8 : wH>=0.6 ? 6 : 4;
+  return {score:Math.max(1,Math.min(heightCap,Math.round(s))),reasons:r};
 }
 
 function to5(s){return Math.round(s/2)}
